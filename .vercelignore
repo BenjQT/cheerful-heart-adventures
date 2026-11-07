@@ -1,0 +1,7 @@
+# keep the upload to the game itself
+*.zip
+.claude/
+.git/
+node_modules/
+.DS_Store
+Thumbs.db
