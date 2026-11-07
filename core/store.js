@@ -103,7 +103,8 @@
       if (!v || typeof v !== 'object' || Array.isArray(v)) continue;
       try { if (JSON.stringify(v).length <= MAX_EXTRA) out[id] = JSON.parse(JSON.stringify(v)); } catch (e) {}
     }
-    if (x.map && typeof x.map === 'object' && Array.isArray(x.map.seen)) out.map = { seen: x.map.seen.filter(id => GAME_IDS.indexOf(id) >= 0) };
+    for (const k of ['map', 'book'])   // map: stops seen open · book: stickers seen
+      if (x[k] && typeof x[k] === 'object' && Array.isArray(x[k].seen)) out[k] = { seen: x[k].seen.filter(id => GAME_IDS.indexOf(id) >= 0) };
     return Object.keys(out).length ? out : null;
   }
   function sanitizePlayer(p) {

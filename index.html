@@ -93,6 +93,45 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
 
 .grown{font-weight:600;color:var(--ink);background:rgba(255,253,246,.9);border-radius:14px;padding:12px 16px;line-height:1.45;font-size:.95rem;max-width:72ch}
 .grown b{font-family:var(--display);font-weight:400;font-size:1.1rem}
+
+/* ---------- sticker book ---------- */
+.book-btn{position:relative}
+.book-btn .badge{position:absolute;right:-6px;top:-6px;min-width:26px;height:26px;padding:0 6px;border-radius:13px;background:var(--heart);color:#fff;font-weight:700;font-size:.9rem;display:grid;place-items:center;box-shadow:0 2px 0 var(--heart-d)}
+.book-btn.has-new{animation:ch-glow 1.6s ease-in-out infinite}
+.bookhead{display:flex;align-items:center;gap:12px}
+.bookhead{justify-content:center;text-align:center}
+#book-count{white-space:nowrap;flex:none}
+.bookhead h1{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,6vw,2.4rem);color:#fff;text-shadow:0 3px 0 rgba(42,31,61,.45)}
+.book{background:#fffaf0;border-radius:var(--r-lg,22px);padding:clamp(12px,3vw,24px);box-shadow:inset 0 0 0 4px #f1dfbd,0 8px 0 rgba(42,31,61,.18);
+  background-image:radial-gradient(rgba(201,130,7,.12) 1.5px,transparent 1.6px);background-size:22px 22px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(120px,27vw,160px),1fr));gap:clamp(10px,2.5vw,20px)}
+.slot{display:grid;justify-items:center;gap:6px;border:0;background:none;padding:6px 2px;border-radius:18px;color:var(--ink);cursor:pointer;min-height:var(--tap)}
+.slot .art{display:grid;place-items:center;width:clamp(84px,22vw,112px);aspect-ratio:1}
+.slot .kg-sticker{width:100%}
+.slot.is-new .kg-sticker{animation:kg-stick .7s cubic-bezier(.2,1.5,.4,1) backwards}
+.slot .empty{width:100%;aspect-ratio:1;border-radius:50%;border:4px dashed rgba(110,67,34,.35);display:grid;place-items:center;position:relative;background:rgba(255,255,255,.55)}
+.slot .empty svg{width:56%;height:56%;opacity:.16;filter:grayscale(1)}
+.slot .empty b{position:absolute;font-family:var(--display);font-size:1.6rem;color:rgba(110,67,34,.55)}
+.slot .nm{font-weight:700;font-size:.95rem;text-align:center;line-height:1.15}
+.slot.is-empty .nm{opacity:.6}
+.slot:focus-visible{outline:4px solid var(--focus,#2a6fc4);outline-offset:2px}
+.certcard{margin-top:clamp(14px,3vw,24px);display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;background:#fff;border-radius:18px;padding:14px 16px;box-shadow:0 4px 0 rgba(42,31,61,.15)}
+.certcard .seal{width:clamp(64px,16vw,88px);aspect-ratio:1;display:grid;place-items:center;border-radius:50%;background:var(--gold);box-shadow:inset 0 -5px 0 var(--gold-d)}
+.certcard .seal svg{width:60%;height:60%}
+.certcard.is-locked .seal{filter:grayscale(1);opacity:.55}
+.certcard h2{margin:0 0 4px;font-family:var(--display);font-weight:400;font-size:1.35rem}
+.certcard p{margin:0 0 8px;font-weight:600}
+/* ---------- certificate ---------- */
+.certwrap{display:grid;gap:14px;justify-items:center}
+.certimg{width:100%;max-width:1000px;height:auto;border-radius:10px;box-shadow:0 10px 30px rgba(42,31,61,.35);background:#fffaf0;aspect-ratio:1600/1131}
+.certbtns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+@media print{
+  @page{size:landscape;margin:8mm}
+  body.printing-cert>*:not(#scr-cert){display:none!important}
+  body.printing-cert #scr-cert{display:block!important;padding:0!important;min-height:0}
+  body.printing-cert #scr-cert>*:not(.certwrap),body.printing-cert .certbtns{display:none!important}
+  body.printing-cert .certimg{box-shadow:none;border-radius:0;max-width:none;width:100%}
+}
 </style>
 </head>
 <body class="ch-app">
@@ -122,6 +161,7 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
     <span id="player-slot"></span>
     <div class="prog" id="prog"></div>
     <div class="sp"></div>
+    <span id="book-slot"></span>
     <span id="music-slot"></span>
   </div>
   <div class="maphead">
@@ -133,6 +173,35 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
   <div class="grown"><b>For grown-ups:</b> Each game takes about 3 to 5 minutes and practices one skill: counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense. The last game, the Friendship Race, reviews them all. The first three stops are open; finishing a stop opens the next one. Turn the sound on so the friends can read every instruction aloud. Each player’s stars are saved on this device.</div>
 </section>
 
+
+<!-- STICKER BOOK -->
+<section class="screen" id="scr-book" hidden>
+  <div class="bar">
+    <span id="book-back"></span>
+    <div class="sp"></div>
+    <div class="prog" id="book-count"></div>
+  </div>
+  <div class="bookhead"><h1>My Sticker Book</h1></div>
+  <div class="greet" id="book-greet"></div>
+  <div class="book">
+    <h2 class="ch-sr">Stickers</h2>
+    <div class="slots" id="slots"></div>
+    <div class="certcard" id="certcard"></div>
+  </div>
+</section>
+
+<!-- CERTIFICATE -->
+<section class="screen" id="scr-cert" hidden>
+  <div class="bar ch-noprint">
+    <span id="cert-back"></span>
+    <div class="sp"></div>
+  </div>
+  <div class="bookhead ch-noprint"><h1>Ready for Grade 1!</h1></div>
+  <div class="certwrap">
+    <img class="certimg" id="certimg" alt="">
+    <div class="certbtns ch-noprint" id="certbtns"></div>
+  </div>
+</section>
 <script src="core/config.js"></script><script src="core/store.js"></script>
 <script src="core/voice.js"></script>
 <script src="core/ui.js"></script>
@@ -143,7 +212,7 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
 'use strict';
 const {ui,h,store,voice}=CH,{fx}=ui;
 const esc=CH.esc;
-const scr={title:KG.$('#scr-title'),who:KG.$('#scr-who'),hub:KG.$('#scr-hub')};
+const scr={title:KG.$('#scr-title'),who:KG.$('#scr-who'),hub:KG.$('#scr-hub'),book:KG.$('#scr-book'),cert:KG.$('#scr-cert')};
 const replay=ui.replayButton({onClick:()=>{KG.ensureAudio();lastLine&&talk(lastLine.who,lastLine.html,lastLine.spoken)}});
 document.body.appendChild(replay);replay.hidden=true;
 let lastLine=null;
@@ -349,7 +418,7 @@ function goHub(doGreet){
   const total=CFG.GAMES.reduce((a,g)=>a+((p.games[g.id]||{}).bestStars||0),0),done=CFG.GAMES.filter(g=>CFG.isCompleted(p,g.id)).length;
   KG.$('#prog').innerHTML=`${KG.starSVG()} ${total} · ${done}<span class="long"> of 12 stops</span><span aria-hidden="true" class="short">/12</span>`;
   KG.$('#prog').setAttribute('aria-label',`${total} stars. ${done} of 12 stops finished.`);
-  buildMap();
+  buildMap();updateBookBtn(p);
   const nx=CFG.nextStop(p);
   if(isPortrait()&&nx&&nx.index>1){const go=()=>{if(scrollY<40&&stops[nx.index])stops[nx.index].scrollIntoView({block:'center'})};requestAnimationFrame(go);setTimeout(go,350)}
   if(doGreet){
@@ -367,6 +436,133 @@ function goHub(doGreet){
 
 /* keep the hub fresh if another tab (e.g. Grown-ups' Corner) changes data */
 store.onChange(t=>{if(t==='external'){if(!scr.hub.hidden)goHub(false);else if(!scr.who.hidden)renderWho()}});
+
+/* ---------- STICKER BOOK ---------- */
+const bookGreet=ui.bubble();KG.$('#book-greet').appendChild(bookGreet);bookGreet.setCaptions(store.setting('captions'));
+const bookBtn=ui.iconButton({icon:'book',label:'My sticker book',onClick:()=>{startAudio();KG.sfx.pop();goBook()}});
+bookBtn.classList.add('book-btn');KG.$('#book-slot').appendChild(bookBtn);
+const bookBack=ui.iconButton({icon:'back',label:'Back to the map',onClick:()=>{startAudio();KG.sfx.pop();voice.cancel();goHub(false)}});
+KG.$('#book-back').appendChild(bookBack);
+const certBack=ui.iconButton({icon:'back',label:'Back to the sticker book',onClick:()=>{startAudio();KG.sfx.pop();voice.cancel();goBook()}});
+KG.$('#cert-back').appendChild(certBack);
+
+const newStickers=p=>{const seen=(store.getExtra('book')||{}).seen;return seen?p.stickers.filter(id=>seen.indexOf(id)<0):p.stickers.slice()};
+function updateBookBtn(p){
+  const n=p.stickers.length,fresh=newStickers(p).length;
+  bookBtn.classList.toggle('has-new',fresh>0);
+  let b=bookBtn.querySelector('.badge');if(!b){b=h('span',{class:'badge','aria-hidden':'true'});bookBtn.appendChild(b)}
+  b.textContent=n;b.hidden=!n;
+  bookBtn.setAttribute('aria-label',`My sticker book. ${n} of 12 stickers${fresh?`, ${fresh} new`:''}.`);
+}
+const ALL_DONE=p=>CFG.GAMES.every(g=>p.stickers.indexOf(g.id)>=0);
+
+function goBook(){
+  const p=store.activePlayer();if(!p){goWho();return}
+  player=p;show('book');
+  const fresh=newStickers(p);store.setExtra('book',{seen:p.stickers.slice()});
+  const n=p.stickers.length;
+  KG.$('#book-count').innerHTML=`${KG.starSVG()} ${n} of 12`;KG.$('#book-count').setAttribute('aria-label',`${n} of 12 stickers`);
+  const slots=KG.$('#slots');slots.innerHTML='';
+  CFG.GAMES.forEach(g=>{
+    const got=p.stickers.indexOf(g.id)>=0,H=CH.HEROES[g.host];
+    const b=h('button',{type:'button',class:'slot'+(got?'':' is-empty')+(fresh.indexOf(g.id)>=0?' is-new':''),
+      'aria-label':got?`${g.place} sticker. You got it!`:`Empty space for the ${g.place} sticker.`});
+    b.innerHTML=`<span class="art">${got?KG.stickerSVG(g.id):`<span class="empty">${ICON[g.icon]}<b>${g.n}</b></span>`}</span><span class="nm">${esc(g.place)}</span>`;
+    b.onclick=()=>{startAudio();
+      if(got){KG.sfx.pop();fx.bounce(b.querySelector('.art'));talk(g.host,KG.pick([`You got this sticker at <b>${esc(g.place)}</b>! Great job!`,`<b>${esc(g.place)}</b>! I remember that adventure!`,`What a shiny sticker from <b>${esc(g.place)}</b>!`]),null,bookGreet)}
+      else{KG.sfx.tap();fx.wobble(b.querySelector('.art'));talk(g.host,`Play <b>${esc(g.place)}</b> with ${H.name} to get this sticker!`,null,bookGreet)}};
+    slots.appendChild(ui.pressable(b));
+  });
+  // certificate card
+  const cc=KG.$('#certcard'),done=ALL_DONE(p);cc.className='certcard'+(done?'':' is-locked');cc.innerHTML='';
+  cc.appendChild(h('div',{class:'seal','aria-hidden':'true',html:KG.starSVG('#fff','#c98207')}));
+  const txt=h('div');
+  if(done){
+    txt.append(h('h2',{text:'Ready for Grade 1!'}),h('p',{text:'You collected every sticker. Your certificate is ready!'}));
+    const go=ui.bigButton({label:'See my certificate',variant:'gold',icon:'play',onClick:()=>{startAudio();KG.sfx.pop();goCert()}});txt.appendChild(go);
+    go.classList.add('ch-glow');
+  }else{
+    txt.append(h('h2',{text:'Ready for Grade 1! certificate'}),h('p',{text:`Collect all 12 stickers to get your certificate. ${12-n} to go!`}));
+    const pb=ui.progressBar({max:12,value:n,label:`${n} of 12 stickers`});txt.appendChild(pb);
+  }
+  cc.appendChild(txt);
+  // spoken welcome
+  const s=voice.speakName(p),nm=esc(p.name);
+  if(done)talk('wynea',`Wow, <b>${nm}</b>! You collected all 12 stickers! Tap the certificate!`,`Wow, ${s}! You collected all twelve stickers! Tap the certificate!`,bookGreet);
+  else if(fresh.length)talk(CFG.game(fresh[fresh.length-1]).host,`Look, <b>${nm}</b>! You have ${fresh.length===1?'a new sticker':fresh.length+' new stickers'}! Tap a sticker to hear about it.`,`Look, ${s}! You have ${fresh.length===1?'a new sticker':fresh.length+' new stickers'}! Tap a sticker to hear about it.`,bookGreet);
+  else if(n)talk('ali',`This is your sticker book! You have <b>${n}</b> sticker${n>1?'s':''}. Tap one!`,null,bookGreet);
+  else talk('ali','This is your sticker book! Finish an adventure on the map to get your first sticker!',null,bookGreet);
+  if(fresh.length)KG.sfx.coin();
+}
+
+/* ---------- READY FOR GRADE 1! CERTIFICATE ----------
+   Drawn on a canvas so the same picture can be shown, printed and saved as PNG. */
+const CW=1600,CHT=1131;
+const loadImg=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src});
+const svgImg=svg=>loadImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.indexOf('xmlns=')>0?svg:svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"')));
+function rr(g,x,y,w,hh,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+hh,r);g.arcTo(x+w,y+hh,x,y+hh,r);g.arcTo(x,y+hh,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+function starPath(g,x,y,r){g.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rad=i%2?r*.45:r;g.lineTo(x+Math.cos(a)*rad,y+Math.sin(a)*rad)}g.closePath()}
+/* balanced wrap: same number of lines as a greedy wrap, but evened out (no lonely last word) */
+function wrapBalanced(g,text,maxW){const n=wrapLines(g,text,maxW).length;let lo=maxW*.5,hi=maxW;for(let k=0;k<14;k++){const mid=(lo+hi)/2;if(wrapLines(g,text,mid).length>n)lo=mid;else hi=mid}return wrapLines(g,text,hi)}
+function wrapLines(g,text,maxW){const words=text.split(' '),lines=[];let line='';words.forEach(w=>{const t=line?line+' '+w:w;if(g.measureText(t).width>maxW&&line){lines.push(line);line=w}else line=t});if(line)lines.push(line);return lines}
+const DISPLAY='"Lilita One","Arial Rounded MT Bold","Trebuchet MS",sans-serif',BODY='Fredoka,"Nunito","Arial Rounded MT Bold",sans-serif';
+async function drawCertificate(p){
+  try{await Promise.all([document.fonts.load(`80px ${DISPLAY}`),document.fonts.load(`600 30px ${BODY}`),document.fonts.load(`700 30px ${BODY}`)])}catch(e){}
+  const cv=document.createElement('canvas');cv.width=CW;cv.height=CHT;const g=cv.getContext('2d');
+  const W=CW,H=CHT;
+  g.fillStyle='#fffaf0';g.fillRect(0,0,W,H);
+  g.fillStyle='rgba(201,130,7,.08)';for(let y=30,r=0;y<H;y+=36,r++)for(let x=30+(r%2)*18;x<W;x+=36){g.beginPath();g.arc(x,y,3,0,7);g.fill()}
+  rr(g,22,22,W-44,H-44,40);g.lineWidth=16;g.strokeStyle='#ffc93c';g.stroke();
+  rr(g,50,50,W-100,H-100,28);g.lineWidth=5;g.strokeStyle='#d6336c';g.stroke();
+  [[92,92],[W-92,92],[92,H-92],[W-92,H-92]].forEach(([x,y])=>{starPath(g,x,y,30);g.fillStyle='#ffc93c';g.fill();g.lineWidth=5;g.strokeStyle='#c98207';g.lineJoin='round';g.stroke()});
+  g.textAlign='center';g.textBaseline='alphabetic';
+  g.font=`700 32px ${BODY}`;g.fillStyle='#d6336c';g.fillText('♥  CHEERFUL HEART ACADEMY  ♥',W/2,148);
+  g.font=`124px ${DISPLAY}`;g.lineJoin='round';g.lineWidth=20;g.strokeStyle='#6e4322';g.strokeText('Ready for Grade 1!',W/2,280);g.fillStyle='#ffc93c';g.fillText('Ready for Grade 1!',W/2,280);
+  g.font=`600 36px ${BODY}`;g.fillStyle='#2a1f3d';g.fillText('This certificate is proudly given to',W/2,352);
+  let fs=112;const name=p.name;g.font=`${fs}px ${DISPLAY}`;while(g.measureText(name).width>W-520&&fs>48){fs-=4;g.font=`${fs}px ${DISPLAY}`}
+  g.fillStyle='#7a4ee6';g.fillText(name,W/2,470);
+  g.strokeStyle='rgba(42,31,61,.25)';g.lineWidth=4;g.beginPath();g.moveTo(W/2-400,496);g.lineTo(W/2+400,496);g.stroke();
+  g.font=`600 30px ${BODY}`;g.fillStyle='#2a1f3d';
+  wrapBalanced(g,'for finishing all 12 adventures and practicing counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense.',W-440).forEach((l,i)=>g.fillText(l,W/2,548+i*40));
+  // the 12 stickers
+  const icons=KG.gameIcons(),S=92,gap=(W-340-12*S)/11,cy=704;
+  const imgs=await Promise.all(CFG.GAMES.map(gm=>svgImg(icons[gm.icon])));
+  CFG.GAMES.forEach((gm,i)=>{const cx=170+S/2+i*(S+gap);g.beginPath();g.arc(cx,cy,S/2,0,7);g.fillStyle='#fff';g.fill();g.lineWidth=7;g.strokeStyle=CH.HEROES[gm.host].ring;g.stroke();
+    const im=imgs[i];if(im){const z=S*.62;g.drawImage(im,cx-z/2,cy-z/2,z,z)}});
+  const total=CFG.GAMES.reduce((a,gm)=>a+((p.games[gm.id]||{}).bestStars||0),0);
+  g.font=`700 28px ${BODY}`;g.fillStyle='#c98207';g.fillText(`★ ${total} stars collected ★`,W/2,796);
+  // the three friends
+  const heroes=await Promise.all(['ali','wynea','matthew'].map(id=>loadImg(CH.HEROES[id].full)));
+  const hh=262,base=H-62;let xs=W/2;const ws=heroes.map(im=>im?hh*im.naturalWidth/im.naturalHeight:0),tot=ws.reduce((a,b)=>a+b,0)-ws.length*30;let x=xs-tot/2;
+  heroes.forEach((im,i)=>{if(im)g.drawImage(im,x,base-hh*(i===1?1.05:1),ws[i]*(i===1?1.05:1),hh*(i===1?1.05:1));x+=ws[i]-30});
+  // date + signatures
+  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const line=(cx,y)=>{g.strokeStyle='rgba(42,31,61,.35)';g.lineWidth=3;g.beginPath();g.moveTo(cx-190,y);g.lineTo(cx+190,y);g.stroke()};
+  g.font=`700 34px ${BODY}`;g.fillStyle='#2a1f3d';g.fillText(date,300,965);line(300,985);g.font=`600 24px ${BODY}`;g.fillStyle='#6b5a80';g.fillText('Date',300,1018);
+  g.font=`36px ${DISPLAY}`;g.fillStyle='#d6336c';g.fillText('Ali, Wynea & Matthew',W-300,965);line(W-300,985);g.font=`600 24px ${BODY}`;g.fillStyle='#6b5a80';g.fillText('Your adventure friends',W-300,1018);
+  return cv;
+}
+let certCanvas=null;
+async function goCert(){
+  const p=store.activePlayer();if(!p){goWho();return}
+  player=p;show('cert');
+  const img=KG.$('#certimg');img.alt=`Ready for Grade 1 certificate for ${p.name}`;img.removeAttribute('src');
+  certCanvas=await drawCertificate(p);img.src=certCanvas.toDataURL('image/png');
+  const btns=KG.$('#certbtns');btns.innerHTML='';
+  btns.append(
+    ui.bigButton({label:'Print',variant:'sky',icon:'book',onClick:()=>grownUp(()=>printCert())}),
+    ui.bigButton({label:'Save picture',variant:'grape',onClick:()=>grownUp(()=>saveCert(p))}),
+    ui.bigButton({label:'Back to stickers',variant:'paper',icon:'back',onClick:()=>{KG.sfx.pop();voice.cancel();goBook()}}));
+  KG.sfx.fanfare();fx.confetti(3500);
+  const s=voice.speakName(p);
+  lastLine={who:'wynea',html:'',spoken:`Congratulations, ${s}! You finished all twelve adventures. You are ready for Grade 1!`};
+  voice.speak(lastLine.spoken,{who:'wynea'});
+}
+/* print + save are for grown-ups (hold + "tap the number" check) */
+function grownUp(fn){startAudio();ui.parentGate({onPass:fn})}
+function printCert(){document.body.classList.add('printing-cert');const done=()=>{document.body.classList.remove('printing-cert');removeEventListener('afterprint',done)};addEventListener('afterprint',done);setTimeout(()=>{window.print();setTimeout(done,1500)},60)}
+function saveCert(p){if(!certCanvas)return;const fname='Ready-for-Grade-1-'+(p.name.replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'')||'certificate')+'.png';
+  certCanvas.toBlob(b=>{if(!b)return;const url=URL.createObjectURL(b);const a=h('a',{href:url,download:fname});document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},4000)},'image/png')}
 
 /* audio may only start after a tap: any first tap wakes it */
 function firstTap(){startAudio();removeEventListener('pointerdown',firstTap,true);removeEventListener('keydown',firstTap,true)}
