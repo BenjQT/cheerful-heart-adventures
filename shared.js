@@ -50,7 +50,7 @@ KG.word=n=>NUMW[n]||String(n);
 
 /* ---------------- fonts + css ---------------- */
 (function(){
-  const l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lilita+One&display=swap';document.head.appendChild(l);
+  const l=document.createElement('link');l.rel='stylesheet';l.href='vendor/fonts/fonts.css';document.head.appendChild(l);
   const css=`
 :root{--ink:#2a1f3d;--cream:#fff8ea;--paper:#fffdf6;--wood:#a86b3a;--wood-d:#6e4322;--plank:#d9a066;--gold:#ffc93c;--gold-d:#d98f0b;--leaf:#5fb043;--leaf-d:#3c8228;--heart:#ff5c8d;--heart-d:#d63a6c;--sky:#3f8fe0;--sky-d:#2a68b0;--grape:#8a5cf6;--grape-d:#6236c9;
 --display:'Lilita One','Arial Rounded MT Bold','Trebuchet MS',system-ui,sans-serif;--body:'Fredoka','Nunito','Arial Rounded MT Bold',system-ui,sans-serif;--kick:0;--cast-h:clamp(100px,22vh,210px);color-scheme:light}

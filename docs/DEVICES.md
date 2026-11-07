@@ -36,7 +36,7 @@ First run: 104 of 112 checks passed. The 8 that failed were all the Grown-ups’
 | Speech voice | ✅ Pass | Real device needed | Real device needed | If no voice exists, captions always show. |
 | Private / incognito browsing | ✅ (simulated in `tests/store-tests.html`) | Real device needed | Real device needed | If storage is blocked, children can still play and grown-ups see a notice. Offline mode may be off in private windows. |
 | Install to home screen | ✅ manifest + icons valid | Real device needed | Real device needed | iPhone/iPad: Share → Add to Home Screen. Apple tags and a 180 px icon are included. |
-| Works offline after first visit | ✅ Pass (server stopped, Star Map 3D + games loaded) | Real device needed | Real device needed | Uses a service worker (`sw.js`). It needs `http(s)://`; opening the files straight from disk still works, just not offline. |
+| Works offline after first visit | ✅ Pass (server stopped, Star Map 3D + games loaded) | Real device needed | Real device needed | Uses a service worker (`sw.js`). Fonts and three.js are part of the game (`vendor/`), so nothing comes from other websites. It needs `http(s)://`; opening the files straight from disk still works (fonts and 3D included), just without offline caching. |
 | Smooth 3D (Star Map) | ✅ Pass | Real device needed | Real device needed | Resolution is capped at 2×. It drops to 1× if the first few seconds run under 40 fps. |
 | Less motion | ✅ Pass | — | — | The setting is in Grown-ups’ Corner, and the device’s own “reduce motion” setting is also followed. The beat bounce stops to save battery. |
 

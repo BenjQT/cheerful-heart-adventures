@@ -4,7 +4,7 @@
    reusable component styles used by core/ui.js. Every page links this.
    Prefix: ch-  (the older game shell in shared.js uses kg-)
    ===================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lilita+One&display=swap');
+@import url('../vendor/fonts/fonts.css');   /* self-hosted: no requests to Google */
 
 :root{
   /* ---- palette: warm, high-contrast. Ink on paper = 14.9:1 ---- */

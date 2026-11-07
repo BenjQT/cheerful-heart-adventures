@@ -12,7 +12,7 @@ All automated tests are in `tests/`. Serve the folder over http first (`py -m ht
 | Test page | What it checks | Result |
 |---|---|---|
 | `tests/voice-tests.html` | The exact words sent to text-to-speech (uses a silent fake engine) | ✅ 9 / 9 |
-| `tests/smoke.html` | Opens all 14 pages, taps Play like a child would, and records every spoken line | ✅ 14 / 14 (48 lines spoken, 0 raw “Wynea”) |
+| `tests/smoke.html` | Opens all 14 pages, taps Play like a child would, records every spoken line, and flags any request to another website | ✅ 14 / 14 (0 raw “Wynea”, 0 outside requests) |
 | `tests/store-tests.html` | Player profiles, migration from the old save format, corrupt / blocked / full storage | ✅ 14 / 14 |
 | `tests/devices.html` | 14 pages × 8 screen sizes: no sideways scroll, no cut-off buttons, 44 px tap targets | ✅ 112 / 112 |
 
@@ -29,7 +29,7 @@ All automated tests are in `tests/`. Serve the folder over http first (`py -m ht
 | No ads, no tracking | Searched for `fetch`, XHR, beacon, cookies, analytics and iframes outside tests and `sw.js`: none found. | ✅ |
 | Only a first name / nickname stored | Player fields: name (15 characters), picture, optional age (4–6), optional “say it as”, progress. | ✅ |
 | Existing features and assets kept | Every file from the baseline commit still exists. The old grown-up note text is kept word for word on the map and in Grown-ups’ Corner. | ✅ |
-| Third-party requests | Fonts load from Google Fonts and the Star Map’s 3D library loads from cdnjs. These are not tracking, but each is a request to another company’s server. | ⚠️ Can be self-hosted so the game makes no outside requests (see §9) |
+| No requests to other websites | Fonts and three.js are self-hosted in `vendor/` (licenses included). Grep finds no outside URLs, and `smoke.html` checks every page’s network requests. | ✅ |
 
 ## 2. Wynea pronunciation (grep + runtime)
 - ✅ **Grep:** `speechSynthesis` / `SpeechSynthesisUtterance` appears only in `core/voice.js`. The duplicate speech engines in `shared.js` and `star-map.html` were removed in Phase 8.
@@ -87,7 +87,7 @@ See `docs/DEVICES.md` for the full pass/fail table.
 - ✅ A full disk trims old history but keeps stars. History is capped at 200 plays per player.
 
 ## 9. Open items
-1. ⚠️ **Self-host fonts and three.js** so the game makes no requests to Google or cdnjs. That would remove the last third-party requests and make the very first visit work offline too.
+1. ✅ ~~Self-host fonts and three.js~~: done; see `vendor/README.md`.
 2. 🔶 **Real-device pass** on iPhone/iPad (Safari), an Android phone and a Chromebook, using the 🔶 rows above.
 3. 🔶 **Play-test with 2–3 children aged 4–6.** Check that each game takes about 3–5 minutes, that instructions are understood without reading, and that hints help.
 4. When releasing, bump `VERSION` in `sw.js`.

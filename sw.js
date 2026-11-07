@@ -4,12 +4,12 @@
      game works with no internet after the first visit.
    • Pages: try the network first (to get updates), fall back to the saved copy.
    • Everything else: the saved copy right away, refreshed in the background.
-   • The 3D library (Star Map) and the web fonts are saved the first time
-     they load. No data is ever sent anywhere — this file only caches files.
+   • Fonts and the 3D library are part of the game (vendor/), so nothing is
+     loaded from other websites. No data is ever sent anywhere.
    Bump VERSION whenever files change so devices pick up the new copies.
    ===================================================================== */
-const VERSION = 'ch-v2-2026-11-07';
-const CORE = `${VERSION}-core`, EXT = `${VERSION}-ext`;
+const VERSION = 'ch-v3-2026-11-07';
+const CORE = `${VERSION}-core`;
 
 const FILES = [
   './', 'index.html', 'grownups.html', 'manifest.webmanifest',
@@ -21,21 +21,16 @@ const FILES = [
   'img/ali.webp', 'img/wynea.webp', 'img/matthew.webp',
   'img/ali-full.webp', 'img/wynea-full.webp', 'img/matthew-full.webp',
   'img/icons/icon-192.png', 'img/icons/icon-512.png', 'img/icons/icon-maskable-512.png',
-  'img/icons/apple-touch-icon.png', 'img/icons/favicon-48.png'
+  'img/icons/apple-touch-icon.png', 'img/icons/favicon-48.png',
+  'vendor/three/three.min.js', 'vendor/fonts/fonts.css',
+  'vendor/fonts/fredoka-latin.woff2', 'vendor/fonts/fredoka-latin-ext.woff2',
+  'vendor/fonts/lilita-one-latin.woff2', 'vendor/fonts/lilita-one-latin-ext.woff2'
 ];
-/* saved on install too, but a failure here must not stop the install */
-const OPTIONAL = [
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
-  'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lilita+One&display=swap'
-];
-const EXT_HOSTS = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const core = await caches.open(CORE);
     await core.addAll(FILES.map(f => new Request(f, { cache: 'reload' })));
-    const ext = await caches.open(EXT);
-    await Promise.all(OPTIONAL.map(u => fetch(u, { mode: 'cors' }).then(r => r.ok && ext.put(u, r)).catch(() => {})));
     await self.skipWaiting();
   })());
 });
@@ -60,8 +55,8 @@ async function fromNetworkThenCache(req) {
 }
 async function fromCacheThenRefresh(req, name) {
   const cache = await caches.open(name);
-  const hit = await cache.match(req, { ignoreSearch: name === CORE });
-  const refresh = fetch(req).then(res => { if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone()); return res; }).catch(() => null);
+  const hit = await cache.match(req, { ignoreSearch: true });
+  const refresh = fetch(req).then(res => { if (res && res.ok) cache.put(req, res.clone()); return res; }).catch(() => null);
   return hit || (await refresh) || Response.error();
 }
 
@@ -73,7 +68,5 @@ self.addEventListener('fetch', e => {
     if (url.pathname.includes('/tests/')) return;                 // test pages always live
     if (req.mode === 'navigate') e.respondWith(fromNetworkThenCache(req));
     else e.respondWith(fromCacheThenRefresh(req, CORE));
-  } else if (EXT_HOSTS.includes(url.hostname)) {
-    e.respondWith(fromCacheThenRefresh(req, EXT));
-  }
+  }   // other websites are never contacted by the game
 });

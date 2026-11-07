@@ -9,7 +9,7 @@
 </style></head><body>
 <h1>Smoke test — every page</h1>
 <p>Opens each page in a hidden frame, starts it like a child would (tap Play), and checks: the shared code loaded,
-no script errors, the friends really speak, and <b>“Wynea” is never sent raw to text-to-speech</b>.
+no script errors, no requests to other websites, the friends really speak, and <b>“Wynea” is never sent raw to text-to-speech</b>.
 The speech engine is muted during the test; it records the words instead.
 A temporary test player is used and removed afterwards.</p>
 <div id="sum" role="status">Running…</div>
@@ -45,6 +45,8 @@ async function run(page){
   if(page!=='grownups.html'&&w.CH&&w.CH.store.setting('sound')!==false&&!spoken.filter(s=>s.trim()).length)issues.push('nothing was spoken');
   const raw=spoken.filter(s=>/wynea/i.test(s));if(raw.length)issues.push('RAW "Wynea" sent to TTS: '+raw[0]);
   if(d.documentElement.scrollWidth>w.innerWidth+1)issues.push('scrolls sideways');
+  const outside=w.performance.getEntriesByType('resource').map(e=>e.name).filter(u=>!u.startsWith(w.location.origin)&&!u.startsWith('data:')&&!u.startsWith('blob:'));
+  if(outside.length)issues.push('request to another website: '+outside[0]);
   try{w.CH&&w.CH.voice&&w.CH.voice.cancel()}catch(e){}
   f.src='about:blank';await sleep(100);f.remove();
   return{issues,spoken:spoken.filter(s=>s.trim())};
