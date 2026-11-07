@@ -1,0 +1,241 @@
+/* =====================================================================
+   Cheerful Heart Adventures — design system (Phase 1)
+   One place for colour, type, spacing, touch sizes, motion and the
+   reusable component styles used by core/ui.js. Every page links this.
+   Prefix: ch-  (the older game shell in shared.js uses kg-)
+   ===================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lilita+One&display=swap');
+
+:root{
+  /* ---- palette: warm, high-contrast. Ink on paper = 14.9:1 ---- */
+  --ink:#2a1f3d;          /* all body text */
+  --ink-soft:#5c4a3a;     /* secondary text on paper (7.4:1) */
+  --paper:#fffdf6;        /* cards, bubbles */
+  --cream:#fff8ea;
+  --paper-edge:#ecdcbf;   /* the "thickness" under paper cards */
+  --sky-bg:#7cc4ff;
+
+  --leaf:#2f7d1f;   --leaf-d:#1f5814;   /* primary action (white text 5.1:1) */
+  --gold:#ffc93c;   --gold-d:#c98207;   /* highlight action (ink text) */
+  --sky:#2a6fc4;    --sky-d:#1c4f91;    /* white text 5.0:1 */
+  --heart:#d6336c;  --heart-d:#a3204f;  /* white text 4.6:1 */
+  --grape:#7a4ee6;  --grape-d:#5530b8;  /* white text 5.1:1 */
+  --wood:#a86b3a;   --wood-d:#6e4322;   --plank:#d9a066;
+
+  /* character rings (kept from the original art) */
+  --ali:#3d63c9; --wynea:#ff5c8d; --matthew:#4aa3e0;
+
+  /* feedback — always paired with an icon/shape/animation, never colour alone */
+  --ok:#2e9e4f; --try:#ffb02e; --focus:#1a5cff;
+
+  /* ---- type ---- */
+  --display:'Lilita One','Arial Rounded MT Bold','Trebuchet MS',system-ui,sans-serif;
+  --body:'Fredoka','Nunito','Arial Rounded MT Bold',system-ui,sans-serif;
+  --fs-xs:clamp(.85rem,2.4vw,.95rem);
+  --fs-sm:clamp(.95rem,2.8vw,1.05rem);
+  --fs-md:clamp(1.05rem,3.4vw,1.25rem);
+  --fs-lg:clamp(1.3rem,4.4vw,1.7rem);
+  --fs-xl:clamp(1.8rem,6.5vw,2.8rem);
+  --fs-hero:clamp(2.4rem,8vw,4.6rem);
+
+  /* ---- sizing ---- */
+  --tap:72px;          /* minimum touch target, everywhere */
+  --tap-lg:96px;
+  --gap-1:6px; --gap-2:10px; --gap-3:16px; --gap-4:24px; --gap-5:36px;
+  --r-sm:12px; --r-md:18px; --r-lg:26px; --r-pill:999px;
+  --content-max:1180px;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
+  --gutter-l:max(16px,var(--safe-l)); --gutter-r:max(16px,var(--safe-r));
+  --vh:100vh;
+
+  /* ---- depth ---- */
+  --lift:0 6px 0 rgba(42,31,61,.22);
+  --lift-pressed:0 2px 0 rgba(42,31,61,.22);
+  --soft:0 10px 28px rgba(42,31,61,.22);
+
+  /* ---- motion (zeroed when reduced motion is on) ---- */
+  --dur-1:.12s; --dur-2:.25s; --dur-3:.5s;
+  --ease-bounce:cubic-bezier(.3,1.6,.5,1);
+
+  /* ---- layers ---- */
+  --z-bg:0; --z-stage:2; --z-hud:6; --z-bubble:8; --z-fx:24; --z-modal:40; --z-gate:50;
+
+  color-scheme:light;
+}
+@supports (height:100dvh){:root{--vh:100dvh}}
+
+/* reduced motion: OS setting OR the in-app setting (html[data-motion="reduce"]) */
+@media (prefers-reduced-motion:reduce){:root{--dur-1:0s;--dur-2:0s;--dur-3:0s}}
+html[data-motion="reduce"]{--dur-1:0s;--dur-2:0s;--dur-3:0s}
+html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{
+  animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+
+/* =========================== base =========================== */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+.ch-app{font-family:var(--body);color:var(--ink);font-size:16px;line-height:1.35;
+  -webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* touch hygiene for play surfaces (inputs opt back in below) */
+.ch-app,.ch-noselect{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ch-app img,.ch-app svg{-webkit-user-drag:none;user-drag:none}
+.ch-app input,.ch-app textarea,.ch-app [contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.ch-app button,.ch-app a{font-family:inherit;-webkit-tap-highlight-color:transparent}
+.ch-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+/* one visible focus ring for keyboard users, on every control */
+.ch-app :focus{outline:none}
+.ch-app :focus-visible{outline:4px solid #fff;outline-offset:3px;box-shadow:0 0 0 8px var(--focus)!important;border-radius:var(--r-sm)}
+
+/* ========================= BigButton ========================= */
+.ch-btn{--bg:var(--leaf);--bg-d:var(--leaf-d);--fg:#fff;
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+  min-width:var(--tap);min-height:var(--tap);padding:.45em 1.3em .55em;
+  font-family:var(--display);font-size:var(--fs-lg);letter-spacing:.02em;line-height:1.05;
+  color:var(--fg);background:var(--bg);border:0;border-radius:var(--r-md);cursor:pointer;text-decoration:none;
+  box-shadow:inset 0 -7px 0 var(--bg-d),inset 0 3px 0 rgba(255,255,255,.35),var(--lift);
+  text-shadow:0 2px 0 rgba(0,0,0,.2);transition:transform var(--dur-1),box-shadow var(--dur-1)}
+.ch-btn svg,.ch-btn img{width:1.4em;height:1.4em;flex:none}
+.ch-btn:active,.ch-btn.is-pressed{transform:translateY(4px);box-shadow:inset 0 -3px 0 var(--bg-d),inset 0 3px 0 rgba(255,255,255,.35),var(--lift-pressed)}
+.ch-btn--gold{--bg:var(--gold);--bg-d:var(--gold-d);--fg:var(--ink);text-shadow:0 2px 0 rgba(255,255,255,.45)}
+.ch-btn--sky{--bg:var(--sky);--bg-d:var(--sky-d)}
+.ch-btn--heart{--bg:var(--heart);--bg-d:var(--heart-d)}
+.ch-btn--grape{--bg:var(--grape);--bg-d:var(--grape-d)}
+.ch-btn--paper{--bg:var(--paper);--bg-d:var(--paper-edge);--fg:var(--ink);text-shadow:none}
+.ch-btn--xl{font-size:var(--fs-xl);min-height:var(--tap-lg);padding:.35em 1.6em .45em;border-radius:var(--r-lg)}
+.ch-btn--block{width:100%}
+.ch-btn[disabled],.ch-btn[aria-disabled="true"]{filter:grayscale(.7);opacity:.6;cursor:not-allowed;transform:none}
+@media (hover:hover){.ch-btn:not([disabled]):hover{filter:brightness(1.06)}}
+
+/* ========================= IconButton ========================= */
+.ch-icon{display:inline-grid;place-items:center;flex:none;width:var(--tap);height:var(--tap);padding:0;
+  border:0;border-radius:var(--r-md);background:var(--cream);color:var(--wood-d);cursor:pointer;text-decoration:none;
+  box-shadow:inset 0 -6px 0 #e7cfa6,var(--lift);transition:transform var(--dur-1),box-shadow var(--dur-1)}
+.ch-icon svg{width:38px;height:38px}
+.ch-icon:active,.ch-icon.is-pressed{transform:translateY(3px);box-shadow:inset 0 -3px 0 #e7cfa6,var(--lift-pressed)}
+.ch-icon.is-off{opacity:.55}
+.ch-icon.is-off::after{content:"";position:absolute;width:52%;height:6px;border-radius:3px;background:var(--wood-d);transform:rotate(-45deg)}
+.ch-icon{position:relative}
+.ch-icon--round{border-radius:50%}
+
+/* ===================== ReplayAudioButton =====================
+   Always the same spot: top-right corner, inside the safe area. */
+.ch-replay{position:fixed;z-index:var(--z-hud);top:calc(var(--safe-t) + 10px);right:var(--gutter-r);
+  background:var(--gold);color:var(--ink);box-shadow:inset 0 -6px 0 var(--gold-d),var(--lift)}
+.ch-replay:active{box-shadow:inset 0 -3px 0 var(--gold-d),var(--lift-pressed)}
+.ch-replay.is-speaking svg{animation:ch-pulse 1s ease-in-out infinite}
+
+/* ========================= StarRating ========================= */
+.ch-stars{display:inline-flex;gap:.18em;align-items:center;--size:44px}
+.ch-stars .ch-star{width:var(--size);height:var(--size);display:block}
+.ch-star .fill{fill:var(--gold);stroke:var(--wood-d)}
+.ch-star.is-empty .fill{fill:rgba(255,255,255,.45);stroke:rgba(110,67,34,.55);stroke-dasharray:9 7}
+.ch-stars.is-animated .ch-star:not(.is-empty){animation:ch-star-in .6s var(--ease-bounce) backwards}
+.ch-stars.is-animated .ch-star:nth-child(2){animation-delay:.35s}
+.ch-stars.is-animated .ch-star:nth-child(3){animation-delay:.7s}
+
+/* ======================= CharacterBubble ======================= */
+.ch-bubble{display:flex;align-items:flex-start;gap:var(--gap-2);max-width:640px;--ring:var(--wynea)}
+.ch-bubble__face{flex:none;width:clamp(58px,13vw,76px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#fff;
+  border:4px solid var(--ring);box-shadow:var(--lift);padding:0;cursor:pointer}
+.ch-bubble__face img{width:100%;height:100%;object-fit:cover;display:block}
+.ch-bubble__say{position:relative;flex:1;min-width:0;background:var(--paper);border-radius:var(--r-md);
+  padding:10px 16px 12px;box-shadow:var(--lift);min-height:58px}
+.ch-bubble__say::before{content:"";position:absolute;left:-10px;top:22px;border:10px solid transparent;border-right-color:var(--paper);border-left:0}
+.ch-bubble__who{font-family:var(--display);font-size:var(--fs-sm);color:var(--ring)}
+.ch-bubble__txt{font-weight:600;font-size:var(--fs-md);line-height:1.25}
+.ch-bubble__txt b{color:var(--heart-d)}
+.ch-bubble.is-captions-off .ch-bubble__txt{display:none}
+.ch-bubble.is-captions-off .ch-bubble__say::after{content:"♪ ♪ ♪";font-size:var(--fs-lg);color:var(--ring)}
+.ch-bubble.is-talking .ch-bubble__face{animation:ch-talk .32s ease-in-out infinite}
+
+/* ============================ Modal ============================ */
+.ch-modal{position:fixed;inset:0;z-index:var(--z-modal);display:grid;place-items:center;
+  padding:max(16px,var(--safe-t)) var(--gutter-r) max(16px,var(--safe-b)) var(--gutter-l);
+  background:rgba(42,31,61,.45);overflow-y:auto;overscroll-behavior:contain;animation:ch-fade var(--dur-2) ease-out}
+.ch-modal__card{width:min(560px,100%);background:var(--paper);border-radius:var(--r-lg);padding:clamp(18px,4vw,28px);
+  box-shadow:inset 0 -8px 0 var(--paper-edge),var(--soft);display:grid;gap:var(--gap-3);animation:ch-rise var(--dur-3) var(--ease-bounce)}
+.ch-modal__title{margin:0;font-family:var(--display);font-weight:400;font-size:var(--fs-xl);line-height:1.05;color:var(--ink)}
+.ch-modal__body{font-size:var(--fs-md);font-weight:500}
+.ch-modal__actions{display:flex;flex-wrap:wrap;gap:var(--gap-2);justify-content:flex-end}
+.ch-modal__close{position:absolute;top:10px;right:10px}
+.ch-modal__card{position:relative}
+
+/* ========================== ParentGate ========================== */
+.ch-gate .ch-modal__card{text-align:center;justify-items:center}
+.ch-hold{position:relative;width:132px;height:132px;border-radius:50%;border:0;padding:0;cursor:pointer;
+  background:var(--cream);box-shadow:inset 0 -7px 0 #e7cfa6,var(--lift);display:grid;place-items:center;touch-action:none}
+.ch-hold svg.ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ch-hold svg.ring circle{fill:none;stroke-width:10}
+.ch-hold svg.ring .track{stroke:rgba(110,67,34,.15)}
+.ch-hold svg.ring .bar{stroke:var(--leaf);stroke-linecap:round;stroke-dasharray:364;stroke-dashoffset:364}
+.ch-hold .lbl{font-family:var(--display);font-size:1rem;color:var(--wood-d);line-height:1.1;max-width:80px}
+.ch-gate__q{font-size:var(--fs-lg);font-weight:600}
+.ch-gate__q strong{font-family:var(--display);font-weight:400;color:var(--heart-d)}
+.ch-gate__opts{display:grid;grid-template-columns:repeat(4,minmax(var(--tap),1fr));gap:var(--gap-2);width:100%}
+.ch-gate__opts .ch-btn{font-family:var(--body);font-weight:700;font-size:var(--fs-lg);padding-inline:.4em}
+@media (max-width:420px){.ch-gate__opts{grid-template-columns:repeat(2,1fr)}}
+
+/* ========================= ProgressBar ========================= */
+.ch-progress{position:relative;height:22px;border-radius:var(--r-pill);background:rgba(255,253,246,.7);
+  box-shadow:inset 0 3px 0 rgba(42,31,61,.15);overflow:hidden;min-width:120px}
+.ch-progress__bar{height:100%;width:var(--pct,0%);border-radius:inherit;background:linear-gradient(var(--gold),#ffb000);
+  box-shadow:inset 0 -4px 0 var(--gold-d);transition:width var(--dur-3) var(--ease-bounce)}
+.ch-progress--leaf .ch-progress__bar{background:linear-gradient(#6cc04a,var(--leaf));box-shadow:inset 0 -4px 0 var(--leaf-d)}
+.ch-progress--heart .ch-progress__bar{background:linear-gradient(#ff7aa3,var(--heart));box-shadow:inset 0 -4px 0 var(--heart-d)}
+/* question dots: done = filled star, now = bobbing outline, todo = small dot (shape differs, not just colour) */
+.ch-dots{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ch-dot{width:clamp(20px,4.6vw,28px);height:clamp(20px,4.6vw,28px);display:grid;place-items:center}
+.ch-dot svg{width:100%;height:100%}
+.ch-dot.is-todo svg{width:45%;height:45%}
+.ch-dot.is-now{animation:ch-bob 1s ease-in-out infinite}
+
+/* ========================= surfaces ========================= */
+.ch-card{background:var(--paper);border-radius:var(--r-md);box-shadow:inset 0 -6px 0 var(--paper-edge),var(--lift);padding:var(--gap-3)}
+.ch-panel{background:repeating-linear-gradient(180deg,var(--plank) 0 22px,#cf9558 22px 24px);border:4px solid var(--wood-d);
+  border-radius:var(--r-lg);box-shadow:inset 0 0 0 3px #e9b77f,0 10px 0 rgba(42,31,61,.25),var(--soft);padding:var(--gap-3)}
+.ch-title{margin:0;font-family:var(--display);font-weight:400;font-size:var(--fs-hero);line-height:.95;color:var(--gold);text-wrap:balance;
+  text-shadow:0 4px 0 var(--wood-d),3px 0 0 var(--wood-d),-3px 0 0 var(--wood-d),0 -3px 0 var(--wood-d),3px 3px 0 var(--wood-d),-3px 3px 0 var(--wood-d),3px -3px 0 var(--wood-d),-3px -3px 0 var(--wood-d),0 10px 0 rgba(42,31,61,.22)}
+.ch-chip{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;background:var(--c,var(--heart));padding:.35em .9em;border-radius:var(--r-pill)}
+.ch-input{width:100%;min-height:var(--tap);font:600 max(16px,var(--fs-lg)) var(--body);color:var(--ink);
+  padding:.3em .7em;border:4px solid var(--paper-edge);border-radius:var(--r-md);background:#fff}
+.ch-input:focus-visible{border-color:var(--focus)}
+
+/* ======================== micro-animations ======================== */
+.ch-bounce{animation:ch-bounce .45s var(--ease-bounce)}
+.ch-wobble{animation:ch-wobble .5s ease-in-out}
+.ch-cheer{animation:ch-jump .42s ease-in-out 3}
+.ch-wave{animation:ch-wave .9s ease-in-out 2;transform-origin:50% 90%}
+.ch-glow{box-shadow:0 0 0 6px var(--gold),0 0 26px 10px rgba(255,201,60,.85)!important;animation:ch-glow 1.2s ease-in-out infinite}
+.ch-pointer{position:fixed;z-index:var(--z-fx);width:64px;height:64px;pointer-events:none;animation:ch-point .8s ease-in-out infinite}
+.ch-flystar{position:fixed;z-index:var(--z-fx);width:40px;height:40px;pointer-events:none}
+#ch-confetti{position:fixed;inset:0;width:100%;height:100%;z-index:var(--z-fx);pointer-events:none}
+
+@keyframes ch-bounce{40%{transform:scale(1.16)}70%{transform:scale(.95)}}
+@keyframes ch-wobble{20%{transform:translateX(-8px) rotate(-3deg)}40%{transform:translateX(7px) rotate(3deg)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@keyframes ch-jump{50%{transform:translateY(-18%) rotate(-4deg)}}
+@keyframes ch-wave{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes ch-glow{50%{box-shadow:0 0 0 9px var(--gold),0 0 34px 14px rgba(255,201,60,.95)}}
+@keyframes ch-point{50%{transform:translate(-6px,-10px)}}
+@keyframes ch-bob{50%{transform:translateY(-4px)}}
+@keyframes ch-pulse{50%{transform:scale(1.15)}}
+@keyframes ch-talk{50%{transform:translateY(-3px) rotate(-2deg)}}
+@keyframes ch-fade{from{opacity:0}}
+@keyframes ch-rise{from{transform:translateY(24px) scale(.94);opacity:0}}
+@keyframes ch-star-in{0%{transform:scale(0) rotate(-140deg)}100%{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){.ch-bounce,.ch-wobble,.ch-cheer,.ch-wave,.ch-glow,.ch-pointer,.ch-dot.is-now{animation:none}}
+html[data-motion="reduce"] .ch-glow{animation:none}
+
+/* ======================== layout helpers ======================== */
+.ch-screen{min-height:var(--vh);padding:calc(var(--safe-t) + 12px) var(--gutter-r) calc(var(--safe-b) + 16px) var(--gutter-l)}
+.ch-wrap{width:min(var(--content-max),100%);margin-inline:auto}
+.ch-row{display:flex;flex-wrap:wrap;gap:var(--gap-2);align-items:center}
+.ch-stack{display:grid;gap:var(--gap-3)}
+.ch-play{overscroll-behavior:none}
+
+/* ======================== print (certificate, reports) ======================== */
+@media print{
+  .ch-noprint,.ch-replay,.ch-modal{display:none!important}
+  body{background:#fff!important}
+}

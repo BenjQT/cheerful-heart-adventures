@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Style Guide · Cheerful Heart Adventures</title>
+<link rel="stylesheet" href="css/theme.css">
+<style>
+  body{margin:0;background:linear-gradient(#7cc4ff,#dff2ff 60%);min-height:var(--vh)}
+  .sg h2{font-family:var(--display);font-weight:400;font-size:var(--fs-lg);margin:0 0 var(--gap-2)}
+  .sg section{margin-bottom:var(--gap-4)}
+  .sg .sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--gap-2)}
+  .sg .sw div{border-radius:var(--r-sm);padding:10px;min-height:64px;font-weight:700;font-size:.85rem;display:flex;align-items:flex-end}
+  .sg .note{color:var(--ink-soft);font-weight:500;margin:0 0 var(--gap-2)}
+  .sg .demo-target{display:inline-grid;place-items:center;width:110px;height:110px;border-radius:var(--r-md);background:var(--paper);box-shadow:var(--lift);font:700 2rem var(--body)}
+  .sg .hero{display:flex;gap:var(--gap-2);align-items:flex-end}
+  .sg .hero img{height:150px;width:auto}
+  .sg label.tg{display:flex;gap:10px;align-items:center;font-weight:600;min-height:var(--tap)}
+  .sg label.tg input{width:32px;height:32px}
+</style>
+</head>
+<body class="ch-app">
+<main class="ch-screen sg">
+<div class="ch-wrap ch-stack">
+  <header class="ch-stack" style="gap:var(--gap-1);padding-right:calc(var(--tap) + 8px)">
+    <span class="ch-chip" style="justify-self:start">Design system · Phase 1</span>
+    <h1 class="ch-title" style="font-size:var(--fs-xl)">Cheerful Heart style guide</h1>
+    <p class="note">Every reusable piece lives in <code>css/theme.css</code> and <code>core/ui.js</code>. Try it with a mouse, a finger, and the keyboard (Tab, Enter/Space, Esc).</p>
+    <label class="tg ch-card" style="padding:8px 14px"><input type="checkbox" id="rm"> Reduced motion (in-app setting)</label>
+  </header>
+
+  <section class="ch-card"><h2>Colours</h2>
+    <p class="note">Warm and high-contrast. Feedback is never colour-only: correct = star + sparkle, try again = wobble + voice.</p>
+    <div class="sw" id="sw"></div></section>
+
+  <section class="ch-card"><h2>BigButton</h2>
+    <div class="ch-row" id="bb"></div></section>
+
+  <section class="ch-card"><h2>IconButton &amp; ReplayAudioButton</h2>
+    <p class="note">72 × 72 px minimum. The 🔊 replay button always sits fixed in the top-right corner (see it now).</p>
+    <div class="ch-row" id="ib"></div></section>
+
+  <section class="ch-card"><h2>StarRating</h2>
+    <div class="ch-row" id="sr" style="gap:var(--gap-4)"></div>
+    <div class="ch-row" style="margin-top:var(--gap-2)" id="srb"></div></section>
+
+  <section class="ch-card"><h2>CharacterBubble</h2>
+    <p class="note">Tap a friend to hear them. The bubble shows captions; tapping the face replays the line.</p>
+    <div class="hero" id="heroes"></div>
+    <div id="bub" style="margin-top:var(--gap-3)"></div>
+    <label class="tg"><input type="checkbox" id="cap" checked> Captions</label></section>
+
+  <section class="ch-card"><h2>ProgressBar &amp; question dots</h2>
+    <div class="ch-stack" id="pb"></div></section>
+
+  <section class="ch-card"><h2>Modal &amp; ParentGate</h2>
+    <div class="ch-row" id="md"></div></section>
+
+  <section class="ch-card"><h2>Micro-animations</h2>
+    <div class="ch-row" style="gap:var(--gap-4);align-items:center">
+      <div class="demo-target" id="target">7</div>
+      <div class="ch-row" id="fx"></div>
+      <div class="ch-chip" id="counter" style="--c:var(--wood-d);font-size:1rem">★ <span id="cnt">0</span></div>
+    </div></section>
+</div>
+</main>
+
+<script src="core/ui.js"></script>
+<script>
+(function(){
+  const {ui,h}=CH,{fx}=ui;
+  // colours
+  [['ink','#fff'],['paper','var(--ink)'],['leaf','#fff'],['gold','var(--ink)'],['sky','#fff'],['heart','#fff'],['grape','#fff'],['wood-d','#fff'],['ali','#fff'],['wynea','var(--ink)'],['matthew','var(--ink)']]
+    .forEach(([n,fg])=>document.getElementById('sw').appendChild(h('div',{style:{background:`var(--${n})`,color:fg},text:'--'+n})));
+  // buttons
+  const bb=document.getElementById('bb');
+  [['Play!','gold','play','xl'],['Next','leaf'],['Play again','sky','again'],['Stickers','grape','book'],['Delete','heart'],['Cancel','paper'],['Locked','leaf','lock']]
+    .forEach(([l,v,i,s],k)=>bb.appendChild(ui.bigButton({label:l,variant:v,icon:i,size:s,disabled:k===6,onClick:()=>{}})));
+  // icons
+  const ib=document.getElementById('ib');
+  ib.append(ui.iconButton({icon:'home',label:'Back to map'}),ui.iconButton({icon:'back',label:'Back'}),
+    ui.iconButton({icon:'music',label:'Music',toggle:true,onClick:(e,el)=>{el.classList.toggle('is-off');el.setAttribute('aria-pressed',String(!el.classList.contains('is-off')))}}),
+    ui.iconButton({icon:'gear',label:'Settings'}),ui.iconButton({icon:'map',label:'Map',round:true}));
+  const rp=ui.replayButton({onClick:()=>bub.replay()});document.body.appendChild(rp);
+  // stars
+  const sr=document.getElementById('sr');[0,1,2,3].forEach(n=>sr.appendChild(ui.starRating(n,{size:40})));
+  const srb=document.getElementById('srb');let big=ui.starRating(3,{size:68,animate:true});srb.append(big,ui.bigButton({label:'Replay stars',variant:'paper',onClick:()=>{const nb=ui.starRating(3,{size:68,animate:true});big.replaceWith(nb);big=nb}}));
+  // bubble
+  const bub=ui.bubble();document.getElementById('bub').appendChild(bub);
+  const LINES={ali:'Hi! I am <b>Ali</b>. Let’s learn together!',wynea:'Hi! I am <b>Wynea</b>. Ready for an adventure?',matthew:'Beep boop! I am <b>Matthew</b>!'};
+  bub.say('wynea',LINES.wynea,{speak:false});
+  const hs=document.getElementById('heroes');
+  Object.values(CH.HEROES).forEach(H=>{const b=h('button',{type:'button',class:'ch-noselect','aria-label':'Say hi to '+H.name,style:{border:0,background:'none',padding:0,cursor:'pointer'}},h('img',{src:H.full,alt:H.name,draggable:'false',style:{height:'150px'}}));
+    b.onclick=()=>{fx.wave(b);bub.say(H.id,LINES[H.id])};hs.appendChild(b)});
+  document.getElementById('cap').onchange=e=>bub.setCaptions(e.target.checked);
+  // progress
+  const pb=document.getElementById('pb');const p1=ui.progressBar({value:40,label:'Counting skill'}),p2=ui.progressBar({value:75,variant:'leaf',label:'Shapes'}),p3=ui.progressBar({value:20,variant:'heart',label:'Time'});
+  let q=2;const d=ui.dots(8,q);pb.append(p1,p2,p3,d,ui.bigButton({label:'Next question',variant:'sky',onClick:()=>{q=(q+1)%9;d.set(q);p1.set(q/8*100)}}));
+  // modal + gate
+  const md=document.getElementById('md');
+  md.append(ui.bigButton({label:'Open modal',variant:'sky',onClick:()=>ui.modal({title:'Great job!',body:'This is a modal. Press Esc, the ✕, or tap outside to close it.',actions:[{label:'Okay',variant:'gold'}]})}),
+    ui.bigButton({label:'Grown-ups',variant:'paper',icon:'gear',onClick:()=>ui.parentGate({onPass:()=>ui.modal({title:'Welcome, grown-up!',body:'The gate let you in.',actions:[{label:'Done',variant:'leaf'}]})})}));
+  // fx
+  const t=document.getElementById('target'),fxr=document.getElementById('fx'),cnt=document.getElementById('cnt');let stars=0,unpoint=null;
+  [['Bounce',()=>fx.bounce(t)],['Wobble (try again)',()=>fx.wobble(t)],['Cheer',()=>fx.cheer(hs.children[1])],['Hint: point',()=>{if(unpoint){unpoint();unpoint=null}else unpoint=fx.pointAt(t)}],
+   ['Stars fly',()=>fx.flyStars(t,document.getElementById('counter'),3).then(()=>{stars+=3;cnt.textContent=stars})],['Confetti',()=>fx.confetti()]]
+    .forEach(([l,f])=>fxr.appendChild(ui.bigButton({label:l,variant:'paper',onClick:f})));
+  document.getElementById('rm').onchange=e=>ui.motion.set(e.target.checked);
+})();
+</script>
+</body>
+</html>
