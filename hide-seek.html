@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Hide-and-Seek Village</title>
+<style>
+.hs{width:min(680px,100%,calc((100vh - 330px)*1.6));aspect-ratio:16/10;position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(#bfe6ff 0 62%,#7cc35a 62% 100%);border:4px solid #6e4322;box-shadow:0 8px 0 rgba(42,31,61,.25)}
+.hs::after{content:"";position:absolute;left:0;right:0;top:62%;height:6px;background:#5aa33c}
+.obj{position:absolute;z-index:2}
+.obj svg{width:100%;height:100%;display:block}
+.who{position:absolute;z-index:1;transform:translateX(-50%) scale(0);transform-origin:50% 100%;transition:transform .5s cubic-bezier(.3,1.6,.5,1)}
+.who.z3{z-index:3}
+.who.show{transform:translateX(-50%) scale(1)}
+.mark{position:absolute;z-index:4;width:clamp(42px,9%,58px);aspect-ratio:1;transform:translate(-50%,-50%);border:0;border-radius:50%;background:radial-gradient(circle at 40% 35%,#9be27a,#43a33a);border:4px solid #fff;box-shadow:0 4px 0 rgba(42,31,61,.3),0 0 0 4px rgba(42,31,61,.15);font-family:var(--display);font-size:clamp(1.2rem,4vw,1.7rem);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3);animation:rustle 1.6s ease-in-out infinite}
+.mark:nth-of-type(2n){animation-delay:.4s}
+@keyframes rustle{0%,100%{transform:translate(-50%,-50%) rotate(0)}10%{transform:translate(-50%,-50%) rotate(-12deg)}20%{transform:translate(-50%,-50%) rotate(10deg)}30%{transform:translate(-50%,-50%) rotate(0)}}
+.mark.shake{animation:kg-shake .45s}
+.mark.glow{background:radial-gradient(circle at 40% 35%,#ffe27a,#ffc93c)}
+.word{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:5;font-family:var(--display);font-size:clamp(1.1rem,4vw,1.6rem);color:#fff;background:var(--heart);padding:.15em .8em;border-radius:999px;box-shadow:inset 0 -4px 0 var(--heart-d);white-space:nowrap}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const OBJ={
+ table:{box:[28,40,44,40],svg:'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="2" y="10" width="96" height="16" rx="3" fill="#c48a52" stroke="#6e4322" stroke-width="4"/><rect x="8" y="26" width="10" height="72" fill="#a8703c" stroke="#6e4322" stroke-width="4"/><rect x="82" y="26" width="10" height="72" fill="#a8703c" stroke="#6e4322" stroke-width="4"/></svg>',
+  spots:{'on':{x:50,b:56,h:30,z:3,m:[50,36]},'under':{x:50,b:82,h:24,z:3,m:[50,70]},'next to':{x:86,b:84,h:40,z:3,m:[86,64]}}},
+ tree:{box:[34,6,32,78],svg:'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="40" y="50" width="20" height="50" fill="#7a5232" stroke="#3c2a1a" stroke-width="4"/><rect x="4" y="4" width="92" height="52" rx="6" fill="#3f9a3c" stroke="#23561f" stroke-width="4"/><rect x="14" y="12" width="20" height="12" fill="#6cc25a"/><rect x="60" y="30" width="16" height="10" fill="#2f7d2c"/></svg>',
+  spots:{'behind':{x:62,b:74,h:38,z:1,m:[64,52]},'in front of':{x:50,b:98,h:40,z:3,m:[50,86]},'next to':{x:14,b:84,h:40,z:3,m:[14,64]}}},
+ box:{box:[34,50,32,32],svg:'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="3" y="3" width="94" height="94" fill="#d39a5c" stroke="#6e4322" stroke-width="5"/><path d="M6 6 94 94M94 6 6 94" stroke="#a8703c" stroke-width="7"/><rect x="3" y="3" width="94" height="14" fill="#b97d48" stroke="#6e4322" stroke-width="4"/></svg>',
+  spots:{'inside':{x:50,b:66,h:30,z:1,m:[50,58]},'on top of':{x:50,b:52,h:32,z:3,m:[50,40]},'next to':{x:84,b:84,h:40,z:3,m:[84,64]}}},
+ house:{box:[26,16,48,66],svg:'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="8" y="40" width="84" height="58" fill="#e8d2a8" stroke="#6e4322" stroke-width="4"/><path d="M2 42 50 4 98 42z" fill="#c45a4a" stroke="#6e2222" stroke-width="4" stroke-linejoin="round"/><rect x="40" y="64" width="20" height="34" fill="#6e4322"/><rect x="16" y="54" width="16" height="14" fill="#9fd8ff" stroke="#6e4322" stroke-width="3"/><rect x="68" y="54" width="16" height="14" fill="#9fd8ff" stroke="#6e4322" stroke-width="3"/></svg>',
+  spots:{'behind':{x:72,b:66,h:40,z:1,m:[76,32]},'in front of':{x:50,b:98,h:40,z:3,m:[38,88]},'on top of':{x:50,b:24,h:24,z:3,m:[50,12]},'next to':{x:88,b:84,h:40,z:3,m:[89,64]}}},
+ bench:{box:[28,58,44,24],svg:'<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="2" y="4" width="96" height="16" fill="#3f8fe0" stroke="#1d3a8a" stroke-width="4"/><rect x="2" y="34" width="96" height="18" fill="#3f8fe0" stroke="#1d3a8a" stroke-width="4"/><rect x="8" y="52" width="10" height="46" fill="#2a1f3d"/><rect x="82" y="52" width="10" height="46" fill="#2a1f3d"/></svg>',
+  spots:{'on':{x:50,b:68,h:32,z:3,m:[50,52]},'under':{x:50,b:84,h:18,z:3,m:[50,76]},'next to':{x:86,b:84,h:40,z:3,m:[86,64]}}}};
+const ORDER=['table','tree','box','house','bench','tree','house','box'];
+KG.game({id:'hide-seek',title:'Hide-and-Seek Village',tag:'Positions',scene:'village',song:'meadow',rounds:8,
+  skill:'Practice: on, under, next to, behind, in front of, inside, on top of',
+  blurb:'The friends are playing hide-and-seek in the village! Listen to the clue and tap the bush where your friend is hiding.',
+  intro:{who:'wynea',text:'Let’s play hide-and-seek! Ready or not, here we come!'},
+  winTitle:'Found Everyone!',winText:'You know your position words. Nobody can hide from you!',winSay:'You found us every time! You are the best seeker!',
+  build(stage,api){
+    stage.innerHTML='<div class="hs" id="hs"></div>';const hs=KG.$('#hs');
+    return{round(i){hs.innerHTML='';const o=OBJ[ORDER[i]],name=ORDER[i];const hider=api.hero(i+2),seeker=api.hero(i);
+      const[bl,bt,bw,bh]=o.box;const ob=KG.el('div','obj',o.svg);Object.assign(ob.style,{left:bl+'%',top:bt+'%',width:bw+'%',height:bh+'%'});hs.appendChild(ob);
+      const words=KG.shuffle(Object.keys(o.spots)).slice(0,3),ans=KG.pick(words),S=o.spots[ans];
+      const img=KG.el('img','who'+(S.z===3?' z3':''));img.src=KG.HEROES[hider].full;img.alt=KG.HEROES[hider].name;Object.assign(img.style,{left:S.x+'%',bottom:(100-S.b)+'%',height:S.h+'%'});hs.appendChild(img);
+      words.forEach(w=>{const sp=o.spots[w];const m=KG.el('button','mark','?');m.style.left=sp.m[0]+'%';m.style.top=sp.m[1]+'%';m.setAttribute('aria-label',w+' the '+name);m.dataset.w=w;
+        m.onclick=()=>{if(api.locked)return;
+          if(w===ans){api.lock();hs.querySelectorAll('.mark').forEach(x=>x.remove());img.classList.add('show');KG.sfx.pop();const tag=KG.el('div','word',ans);hs.appendChild(tag);
+            api.correct({force:true,el:img,who:hider,line:`You found me! I was <b>${ans}</b> the ${name}!`,delay:2800})}
+          else{const n=api.wrong({el:m,line:`Not there! That spot is ${w} the ${name}. ${KG.HEROES[hider].name} is <b>${ans}</b> the ${name}.`});if(n>=2)hs.querySelectorAll('.mark').forEach(x=>{if(x.dataset.w===ans)x.classList.add('glow')})}};
+        hs.appendChild(m)});
+      api.prompt(seeker,`Where is ${KG.HEROES[hider].name}? ${KG.HEROES[hider].name} is <b>${ans}</b> the ${name}!`);
+    }};
+  }});
+</script>
+</body></html>

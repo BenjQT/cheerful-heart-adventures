@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Market Day Adventure</title>
+<style>
+.mk{width:min(700px,100%);display:grid;gap:clamp(10px,2.4vh,20px);justify-items:center}
+.row1{display:grid;grid-template-columns:auto 1fr;gap:clamp(10px,3vw,20px);width:100%;align-items:stretch}
+.fruit{display:grid;justify-items:center;gap:6px;padding:10px 14px 12px;min-width:clamp(120px,30vw,180px)}
+.fruit svg{width:clamp(70px,16vh,120px);height:auto}
+.fruit .nm{font-family:var(--display);font-size:clamp(1.1rem,4vw,1.4rem)}
+.tag{font-family:var(--body);font-weight:700;font-size:clamp(1.4rem,5vw,2rem);background:#ffc93c;padding:.05em .55em;border-radius:10px;box-shadow:inset 0 -4px 0 #d98f0b;font-variant-numeric:tabular-nums}
+.tray{position:relative;border-radius:18px;background:repeating-linear-gradient(90deg,#c48a52 0 24px,#a8703c 24px 27px);border:4px solid #6e4322;box-shadow:inset 0 6px 0 rgba(0,0,0,.18);padding:12px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;min-height:clamp(120px,22vh,180px)}
+.tray .c{width:clamp(44px,9vw,60px);aspect-ratio:1;border:0;background:none;padding:0}
+.tray .c svg{width:100%;height:100%}
+.total{position:absolute;right:10px;bottom:-18px;font-family:var(--body);font-weight:700;font-size:clamp(1.2rem,4.4vw,1.6rem);background:#2a1f3d;color:#7dff8a;padding:.1em .6em;border-radius:10px;font-variant-numeric:tabular-nums}
+.total.over{color:#ff8a9a}
+.purse{display:flex;gap:clamp(10px,4vw,26px);justify-content:center;flex-wrap:wrap}
+.purse .kg-card{width:clamp(80px,20vw,112px);aspect-ratio:1;padding:10px;display:grid;place-items:center}
+.purse .kg-card svg{width:100%;height:100%}
+.hint{font-weight:600;color:#fff;text-shadow:0 2px 0 rgba(42,31,61,.5)}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const F={
+ mango:`<svg viewBox="0 0 100 100"><path d="M30 20c30-12 58 14 54 44-4 26-36 34-54 20C12 70 8 30 30 20z" fill="#ffc72c" stroke="#9a6a08" stroke-width="5"/><path d="M40 22c8 4 20 4 26 0" stroke="#e08a00" stroke-width="5" fill="none"/><path d="M52 18c4-10 14-12 20-8-6 2-12 6-14 12z" fill="#43c25a" stroke="#226b2f" stroke-width="4"/></svg>`,
+ banana:`<svg viewBox="0 0 100 100"><path d="M18 30c6 34 40 52 70 36-2 10-20 24-42 20C22 82 6 56 12 30z" fill="#ffe14d" stroke="#9a7a08" stroke-width="5" stroke-linejoin="round"/><path d="M12 30l4-10 6 8z" fill="#6e4322"/></svg>`,
+ apple:`<svg viewBox="0 0 100 100"><path d="M50 30c-20-12-40 2-38 26 2 26 22 38 38 30 16 8 36-4 38-30 2-24-18-38-38-26z" fill="#ff4d5e" stroke="#9a1f2a" stroke-width="5"/><path d="M50 30c0-10 4-16 10-20" stroke="#6e4322" stroke-width="5" fill="none"/><path d="M56 20c10-8 22-4 24 2-10 4-18 2-24-2z" fill="#43c25a" stroke="#226b2f" stroke-width="3"/></svg>`,
+ watermelon:`<svg viewBox="0 0 100 100"><path d="M8 40h84c0 26-18 44-42 44S8 66 8 40z" fill="#43c25a" stroke="#226b2f" stroke-width="5"/><path d="M16 40h68c0 20-14 34-34 34S16 60 16 40z" fill="#ff5c7a"/>${[[30,50],[46,58],[62,50],[54,66],[38,64]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="3" ry="5" fill="#2a1f3d"/>`).join('')}</svg>`,
+ buko:`<svg viewBox="0 0 100 100"><circle cx="50" cy="54" r="38" fill="#7ab648" stroke="#3c6e22" stroke-width="5"/><ellipse cx="50" cy="34" rx="20" ry="8" fill="#fffdf6" stroke="#3c6e22" stroke-width="4"/><rect x="56" y="6" width="7" height="34" rx="3" fill="#ff5c8d" transform="rotate(14 60 22)"/></svg>`,
+ pineapple:`<svg viewBox="0 0 100 100"><path d="M50 30 38 4l12 12 0-14 8 14 12-10-10 26z" fill="#43c25a" stroke="#226b2f" stroke-width="4"/><ellipse cx="50" cy="62" rx="26" ry="32" fill="#ffb02e" stroke="#9a5a08" stroke-width="5"/><path d="M30 46l40 32M70 46 30 78M28 62l22 18M72 62 50 80M36 36l34 28M64 36 30 64" stroke="#c97a10" stroke-width="3"/></svg>`};
+const ROUNDS=[{f:'banana',p:2,c:[1]},{f:'apple',p:4,c:[1]},{f:'mango',p:3,c:[1]},{f:'buko',p:5,c:[1,5]},{f:'pineapple',p:6,c:[1,5]},{f:'watermelon',p:8,c:[1,5]},{f:'mango',p:10,c:[1,5,10]},{f:'watermelon',p:12,c:[1,5,10]}];
+KG.game({id:'market',title:'Market Day Adventure',tag:'Money',scene:'market',song:'island',rounds:8,
+  skill:'Practice: counting ₱1, ₱5 and ₱10 coins to pay the right amount',
+  blurb:'The friends run a fruit stand at the school fair. Tap coins to pay exactly the price on the tag!',
+  intro:{who:'ali',text:'It’s Market Day at the school fair!'},
+  winTitle:'Market Champs!',winText:'You paid the right amount every time. Great counting with pesos!',winSay:'Yay! We bought all the fruit! You are great with money!',
+  build(stage,api){
+    stage.innerHTML='<div class="mk"><div class="row1"><div class="fruit kg-paper" id="fruit"></div><div class="tray" id="tray"><span class="total" id="total">₱0</span></div></div><div class="purse" id="purse"></div><div class="hint" id="hint">Tap a coin in the tray to take it back.</div></div>';
+    const fruit=KG.$('#fruit'),tray=KG.$('#tray'),purse=KG.$('#purse'),totalEl=KG.$('#total');let cur,sum=0,busy=false;
+    function upd(){totalEl.textContent='₱'+sum;totalEl.classList.toggle('over',sum>cur.p)}
+    function check(){if(sum===cur.p){api.lock();KG.sfx.coin();api.correct({el:tray,line:`₱${cur.p}! That’s exactly right. Here is your ${cur.f}!`})}
+      else if(sum>cur.p){api.wrong({el:tray,line:`Oops, ₱${sum} is too much! The ${cur.f} costs ₱${cur.p}. Tap a coin to take it back.`})}}
+    return{round(i){cur=ROUNDS[i];sum=0;tray.querySelectorAll('.c').forEach(c=>c.remove());upd();
+      fruit.innerHTML=`${F[cur.f]}<span class="nm">${cur.f}</span><span class="tag">₱${cur.p}</span>`;
+      purse.innerHTML='';cur.c.forEach(v=>{const b=KG.el('button','kg-card',KG.coinSVG(v));b.setAttribute('aria-label',v+' peso coin');
+        b.onclick=()=>{if(api.locked||busy)return;busy=true;const slot=KG.el('button','c',KG.coinSVG(v));slot.style.visibility='hidden';slot.setAttribute('aria-label','take back '+v+' peso');tray.insertBefore(slot,totalEl);KG.sfx.coin();
+          KG.fly(b,slot,KG.coinSVG(v),380).then(()=>{busy=false;slot.style.visibility='';sum+=v;upd();KG.say(String(sum),'ali',{now:true,rate:.2});check()});
+          slot.onclick=()=>{if(api.locked)return;sum-=v;slot.remove();upd();KG.sfx.tap()}};purse.appendChild(b)});
+      const who=api.hero(i);
+      api.prompt(who,i===0?`The <b>${cur.f}</b> costs <b>₱${cur.p}</b>. Tap the coins to pay!`:i===3?`New coin! The big one is ₱5. The <b>${cur.f}</b> costs <b>₱${cur.p}</b>.`:i===6?`Now we have ₱10 coins too! The <b>${cur.f}</b> costs <b>₱${cur.p}</b>.`:`The <b>${cur.f}</b> costs <b>₱${cur.p}</b>. Can you pay?`);
+    }};
+  }});
+</script>
+</body></html>

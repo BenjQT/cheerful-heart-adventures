@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ali's Cookie Party</title>
+<style>
+.cp{width:min(680px,100%);display:grid;gap:clamp(10px,2.4vh,20px);justify-items:center}
+.table{width:100%;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px}
+.jar{width:clamp(70px,17vw,110px);aspect-ratio:.8;border-radius:16px 16px 22px 22px;background:linear-gradient(rgba(255,255,255,.65),rgba(200,235,255,.55));border:4px solid #6e4322;position:relative;display:grid;place-items:center;box-shadow:0 6px 0 rgba(42,31,61,.25)}
+.jar::before{content:"";position:absolute;top:-14px;left:12%;width:76%;height:16px;background:#ff5c8d;border:4px solid #6e4322;border-radius:8px}
+.jar svg{width:60%}
+.plate{position:relative;min-height:clamp(130px,26vh,220px);border-radius:50%;background:radial-gradient(ellipse at center,#ffffff 55%,#e9eef7 56%,#ffffff 70%,#d7deea 71%);box-shadow:0 10px 0 rgba(42,31,61,.18);display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:clamp(2px,1vw,8px);padding:6% 12%}
+.ck{width:clamp(44px,10vw,66px);aspect-ratio:1;border:0;background:none;padding:0;position:relative;transition:transform .3s,opacity .3s}
+.ck svg{width:100%;height:100%}
+.ck .n{position:absolute;top:-8px;right:-6px;min-width:24px;height:24px;border-radius:12px;background:#ff5c8d;color:#fff;font-weight:700;font-size:.9rem;display:grid;place-items:center;border:2px solid #fff}
+.ck.gone{transform:scale(0) rotate(40deg);opacity:0}
+.eq{font-family:var(--display);font-size:clamp(1.8rem,7vw,3rem);color:#fff;background:rgba(42,31,61,.6);padding:.05em .7em .12em;border-radius:16px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.eq b{color:#ffc93c}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,3vw,18px);width:min(400px,100%)}
+.opts .kg-card{aspect-ratio:1.2;font-family:var(--body);font-weight:700;font-size:clamp(2.2rem,8vw,3.2rem);color:var(--ink)}
+.opts[hidden]{display:none}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const cookieSVG=(bite)=>`<svg viewBox="0 0 100 100"><circle cx="50" cy="54" r="42" fill="rgba(42,31,61,.2)"/><circle cx="50" cy="50" r="42" fill="#e3a65a" stroke="#8a5528" stroke-width="5"/><circle cx="50" cy="50" r="33" fill="#eeb76b"/>${[[34,36],[60,32],[44,58],[66,60],[30,62],[54,46]].map(([x,y])=>`<rect x="${x-5}" y="${y-5}" width="10" height="10" rx="2" fill="#5a3418"/>`).join('')}${bite?'<circle cx="88" cy="22" r="18" fill="#fffdf6"/>':''}</svg>`;
+function plan(i){if(i<5){const a=KG.rnd(1,5),b=KG.rnd(1,Math.min(4,10-a));return{op:'+',a,b}}
+  if(i%2===1){const a=KG.rnd(3,i<8?7:10),b=KG.rnd(1,Math.min(4,a-1));return{op:'-',a,b}}const a=KG.rnd(2,7),b=KG.rnd(1,Math.min(3,10-a));return{op:'+',a,b}}
+KG.game({id:'cookies',title:'Ali’s Cookie Party',tag:'Add & subtract',scene:'party',song:'island',rounds:10,
+  skill:'Practice: adding and taking away within 10. Tap the cookies to count them!',
+  blurb:'Ali is baking for the class party. Watch cookies get added or eaten, then count how many are left.',
+  intro:{who:'ali',text:'Welcome to my cookie party!'},
+  winTitle:'Party Time!',winText:'Every friend got a cookie. You can add and take away!',winSay:'Yay! Everyone has cookies! You are amazing at adding and taking away!',
+  build(stage,api){
+    stage.innerHTML=`<div class="cp"><div class="table"><div class="jar" id="jar">${cookieSVG()}</div><div class="plate" id="plate"></div></div><div class="eq" id="eq">&nbsp;</div><div class="opts" id="opts" hidden></div></div>`;
+    const plate=KG.$('#plate'),jar=KG.$('#jar'),eq=KG.$('#eq'),opts=KG.$('#opts');let tapN=0;
+    function addCookie(){const c=KG.el('button','ck',cookieSVG());c.setAttribute('aria-label','cookie');c.onclick=()=>{if(c.querySelector('.n')||c.classList.contains('gone'))return;tapN++;c.appendChild(KG.el('span','n',tapN));KG.sfx.count(tapN-1);KG.say(String(tapN),'ali',{now:true,rate:.2})};plate.appendChild(c);return c}
+    function resetCounts(){tapN=0;plate.querySelectorAll('.n').forEach(n=>n.remove())}
+    return{round(i){
+      const p=plan(i),ans=p.op==='+'?p.a+p.b:p.a-p.b;plate.innerHTML='';opts.hidden=true;eq.innerHTML=`${p.a}`;tapN=0;
+      for(let k=0;k<p.a;k++)addCookie();
+      const actor=p.op==='+'?'ali':KG.pick(['matthew','wynea']);const AN=KG.HEROES[actor].name;
+      const first=p.op==='+'?`There ${p.a===1?'is':'are'} ${p.a} cookie${p.a>1?'s':''}. ${AN} bakes <b>${p.b} more</b>!`:`There are ${p.a} cookies. ${AN} eats <b>${p.b}</b>! Yum!`;
+      api.lock();api.talk(actor,first);
+      setTimeout(()=>{eq.innerHTML=`${p.a} ${p.op==='+'?'+':'−'} ${p.b}`;
+        const ms=api.beats(p.b,k=>{if(p.op==='+'){const c=addCookie();c.style.visibility='hidden';KG.fly(jar,c,cookieSVG(),450).then(()=>{c.style.visibility=''});KG.sfx.pop()}else{const live=[...plate.querySelectorAll('.ck:not(.gone)')];const c=live[live.length-1];c.innerHTML=cookieSVG(true);KG.sfx.munch();setTimeout(()=>c.classList.add('gone'),250)}});
+        setTimeout(()=>{resetCounts();eq.innerHTML=`${p.a} ${p.op==='+'?'+':'−'} ${p.b} = <b>?</b>`;
+          const set=new Set([ans]);while(set.size<3){const d=ans+KG.pick([-2,-1,1,2]);if(d>=0&&d<=10)set.add(d)}
+          opts.innerHTML='';KG.shuffle([...set]).forEach(v=>{const b=KG.el('button','kg-card',String(v));b.onclick=()=>{if(api.locked)return;
+            if(v===ans){eq.innerHTML=`${p.a} ${p.op==='+'?'+':'−'} ${p.b} = <b>${ans}</b>`;api.correct({el:b,line:p.op==='+'?`${p.a} plus ${p.b} makes <b>${ans}</b>!`:`${p.a} take away ${p.b} leaves <b>${ans}</b>!`})}
+            else{const n=api.wrong({el:b,line:'Let’s count the cookies together. Tap each one!'});if(n>=2)[...opts.children].forEach(x=>{if(+x.textContent===ans)x.classList.add('glow')})}};opts.appendChild(b)});
+          opts.hidden=false;api.unlock();api.prompt(api.hero(i+1),`How many cookies are on the plate <b>now</b>?`)},ms+700)},2600);
+    }};
+  }});
+</script>
+</body></html>

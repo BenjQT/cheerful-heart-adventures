@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jungle Bridge Builder</title>
+<style>
+.jb{width:min(700px,100%);display:grid;gap:clamp(10px,2.6vh,22px);justify-items:center}
+.river{width:100%;height:clamp(90px,17vh,140px);position:relative;display:grid;grid-template-columns:var(--cliff) 1fr var(--cliff)}
+.cliff{background:linear-gradient(#62b244 0 22%,#8a5c3c 22%);border:4px solid #3c2a1a;border-radius:8px 8px 0 0}
+.water{background:repeating-linear-gradient(90deg,#2f9de0 0 30px,#43aef0 30px 60px);margin-top:28%;border-radius:0 0 10px 10px;position:relative;animation:flow 2s linear infinite;background-size:60px 100%}
+@keyframes flow{to{background-position:60px 0}}
+.slot{position:absolute;left:calc(var(--cliff) - 14px);right:calc(var(--cliff) - 14px);top:6%;height:26%;border:4px dashed rgba(255,255,255,.85);border-radius:10px}
+.slot.full{border:0}
+.slot .log{width:100%!important;height:100%}
+.cart{position:absolute;right:4%;bottom:6%;width:22%;height:46%;background:#c45a4a;border:4px solid #4a2c16;border-radius:6px;display:grid;place-items:center}
+.cart::before,.cart::after{content:"";position:absolute;bottom:-14px;left:10%;width:20px;height:20px;border-radius:50%;background:#2a1f3d}.cart::after{left:auto;right:10%}
+.walk{position:absolute;top:-30px;left:0;display:flex;gap:2px}
+.walk img{width:38px;height:38px;border-radius:50%;border:3px solid #fff;background:#fff;object-fit:cover}
+.opts{width:100%;display:grid;gap:clamp(10px,2vh,16px)}
+.opts.cols{grid-template-columns:repeat(var(--n),1fr);align-items:end}
+.log{height:clamp(30px,6vh,44px);border-radius:10px;background:repeating-linear-gradient(90deg,#9a6436 0 22px,#86552c 22px 25px);border:4px solid #4a2c16;box-shadow:inset 0 5px 0 rgba(255,255,255,.18),0 5px 0 rgba(42,31,61,.25);position:relative}
+.log::before,.log::after{content:"";position:absolute;top:50%;width:calc(clamp(30px,6vh,44px) - 12px);aspect-ratio:1;transform:translateY(-50%);border-radius:50%;background:radial-gradient(#d8a86a 30%,#b98a4f 32% 52%,#d8a86a 54%);border:3px solid #4a2c16}
+.log::before{left:-4px}.log::after{right:-4px}
+.pick{border:0;background:rgba(255,253,246,.55);border-radius:14px;padding:10px;display:flex;justify-content:flex-start;transition:transform .12s}
+.pick:active{transform:scale(.98)}
+.tree{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:clamp(150px,32vh,270px)}
+.tree .lv{width:clamp(70px,16vw,110px);height:clamp(46px,9vh,70px);background:#3f9a3c;border:4px solid #23561f;border-radius:10px;box-shadow:inset 0 -6px 0 rgba(0,0,0,.15),inset 0 5px 0 rgba(255,255,255,.2)}
+.tree .tr{width:clamp(22px,5vw,34px);background:repeating-linear-gradient(180deg,#7a5232 0 16px,#6a4628 16px 19px);border:4px solid #3c2a1a;border-top:0}
+.tree .gr{width:clamp(80px,18vw,120px);height:12px;background:#62b244;border:4px solid #2f6e22;border-radius:6px}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const R=[
+ {m:'logs',want:'long',n:2,say:'Pick the <b>long</b> log to cross the river!'},
+ {m:'trees',want:'tall',n:2,say:'Pick the <b>tall</b> tree so we can see far away!'},
+ {m:'logs',want:'short',n:2,say:'This cart is little. Pick the <b>short</b> log!'},
+ {m:'trees',want:'short',n:2,say:'Matthew’s hat is stuck on the <b>short</b> tree. Which one?'},
+ {m:'logs',want:'long',n:3,say:'Pick the <b>longest</b> log for the wide river!'},
+ {m:'trees',want:'tall',n:3,say:'Which tree is the <b>tallest</b>?'},
+ {m:'logs',want:'short',n:3,say:'Pick the <b>shortest</b> log for the cart!'},
+ {m:'trees',want:'short',n:3,say:'Which tree is the <b>shortest</b>?'}];
+KG.game({id:'bridge',title:'Jungle Bridge Builder',tag:'Measuring',scene:'jungle',song:'island',rounds:8,
+  skill:'Practice: long and short, tall and short, longest and shortest',
+  blurb:'A river blocks the jungle path! Help the friends choose the right logs and trees to keep exploring.',
+  intro:{who:'wynea',text:'Whoa, a jungle river! We need to build a bridge.'},
+  winTitle:'Bridge Built!',winText:'You know long, short and tall. The jungle is ready to explore!',winSay:'We made it across the jungle! You are a measuring master!',
+  build(stage,api){
+    stage.innerHTML='<div class="jb"><div class="river" id="rv" style="--cliff:22%"><div class="cliff"></div><div class="water"></div><div class="cliff"></div><div class="slot" id="slot"></div><div class="cart" id="cart" hidden></div></div><div class="opts" id="opts"></div></div>';
+    const rv=KG.$('#rv'),slot=KG.$('#slot'),cart=KG.$('#cart'),opts=KG.$('#opts');
+    return{round(i){const r=R[i];opts.innerHTML='';slot.className='slot';slot.innerHTML='';
+      const sizes=r.n===2?KG.shuffle([KG.rnd(40,52),KG.rnd(86,100)]):KG.shuffle([KG.rnd(34,44),KG.rnd(58,68),KG.rnd(86,100)]);
+      const target=r.want==='short'?Math.min(...sizes):Math.max(...sizes);
+      const river=r.m==='logs'&&r.want==='long';rv.hidden=r.m!=='logs';cart.hidden=r.want!=='short';slot.hidden=!river;
+      if(r.m==='logs'){rv.style.setProperty('--cliff',r.n===3?'14%':'20%');opts.className='opts';
+        sizes.forEach(sz=>{const b=KG.el('button','pick','<div class="log" style="width:'+sz+'%"></div>');b.setAttribute('aria-label',sz===target?r.want+' log':'log');b.onclick=()=>choose(b,sz);opts.appendChild(b)})}
+      else{opts.className='opts cols';opts.style.setProperty('--n',r.n);
+        sizes.forEach(sz=>{const b=KG.el('button','tree',`<div class="lv"></div><div class="tr" style="height:${sz*.62}%"></div><div class="gr"></div>`);b.setAttribute('aria-label','tree');b.onclick=()=>choose(b,sz);opts.appendChild(b)})}
+      function choose(b,sz){if(api.locked)return;
+        if(sz===target){api.lock();const word=r.n===3?(r.want==='short'?'shortest':r.want==='long'?'longest':'tallest'):r.want;
+          if(river){const lg=b.querySelector('.log');lg.style.visibility='hidden';KG.fly(lg,slot,'<div class="log" style="width:100%;height:100%"></div>',700).then(()=>{slot.classList.add('full');slot.innerHTML='<div class="log"></div>';const w=KG.el('div','walk',KG.ORDER.map(id=>`<img src="${KG.HEROES[id].head}" alt="">`).join(''));slot.appendChild(w);w.animate([{transform:'translateX(0)'},{transform:`translateX(${slot.clientWidth-120}px)`}],{duration:2200,fill:'forwards',easing:'ease-in-out'});api.correct({force:true,el:slot,line:`The <b>${word}</b> log! It reaches all the way across!`,delay:3000})})}
+          else if(r.m==='logs'){const lg=b.querySelector('.log');lg.style.visibility='hidden';KG.fly(lg,cart,'<div class="log" style="width:100%"></div>',600).then(()=>{cart.innerHTML='<div class="log" style="width:80%"></div>';api.correct({force:true,el:cart,line:`The <b>${word}</b> log fits in the cart!`})})}
+          else{api.correct({force:true,el:b,line:`That tree is the <b>${word}</b>!`})}}
+        else{const n=api.wrong({el:b,line:r.m==='logs'?`Hmm, look at how ${r.want==='long'?'long':'short'} they are. Try another one!`:`Compare the trees. Which is the ${r.n===3?(r.want==='tall'?'tallest':'shortest'):r.want}?`});if(n>=2)[...opts.children].forEach((x,k)=>{if(sizes[k]===target)x.classList.add('glow')})}}
+      api.prompt(api.hero(i),r.say);
+    }};
+  }});
+</script>
+</body></html>

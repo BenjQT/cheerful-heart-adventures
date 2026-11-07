@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rainbow Number Garden</title>
+<style>
+.ng{width:min(680px,100%);height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:clamp(6px,1.6vh,14px);justify-items:center}
+.clouds{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2.5vw,16px);width:100%}
+.cloud{border:0;padding:10px 12px 14px;border-radius:40px;background:#fff;box-shadow:inset 0 -7px 0 #d6e4f2,0 6px 0 rgba(42,31,61,.18);display:grid;place-items:center;aspect-ratio:1.5;position:relative}
+.cloud::before{content:"";position:absolute;width:44%;height:50%;top:-20%;left:16%;background:#fff;border-radius:50%;z-index:-1}
+.cloud svg{width:92%;height:auto}
+.cloud .bn{font-family:var(--body);font-weight:700;font-size:clamp(2.2rem,8vw,3.4rem);color:#3d7bff}
+.pot{position:relative;display:grid;justify-items:center;align-self:end}
+.plant{width:clamp(90px,20vh,150px);height:clamp(90px,20vh,150px);display:grid;place-items:end center}
+.plant svg{width:100%;height:100%;transform-origin:50% 100%;transition:transform .8s cubic-bezier(.3,1.6,.5,1)}
+.potbox{width:clamp(110px,24vh,170px);padding:8px 10px 10px;background:linear-gradient(#d9774a,#b85a32);border:4px solid #6e2e14;border-radius:8px 8px 18px 18px;display:grid;place-items:center;box-shadow:0 6px 0 rgba(42,31,61,.25)}
+.sign{background:var(--paper);border-radius:10px;padding:4px 10px;min-width:70%;display:grid;place-items:center}
+.sign .bn{font-family:var(--body);font-weight:700;font-size:clamp(2rem,7vw,3rem);line-height:1.05;color:var(--ink)}
+.sign svg{width:100%;max-width:120px}
+.rain{position:fixed;z-index:12;pointer-events:none;width:6px;height:16px;border-radius:3px;background:#5ab8ff}
+.row{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;width:min(520px,100%)}
+.row div{aspect-ratio:.7;display:grid;place-items:end center;border-radius:8px 8px 0 0;background:rgba(255,253,246,.35)}
+.row div svg{width:100%;height:100%}
+.rainbow{position:fixed;left:50%;top:18%;width:min(90vw,700px);transform:translateX(-50%) scale(0);transform-origin:50% 100%;transition:transform 1.2s cubic-bezier(.3,1.4,.5,1);z-index:1;pointer-events:none}
+.rainbow.show{transform:translateX(-50%) scale(1)}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const RB=['#ff4d5e','#ff9330','#ffd23f','#43c25a','#3d7bff','#6a5cff','#a66bff','#ff6fb5','#ff4d5e','#ff9330'];
+const flower=(c,stage)=>`<svg viewBox="0 0 100 100"><rect x="46" y="${stage?40:70}" width="8" height="${stage?60:30}" fill="#3f9a3c"/><path d="M50 78c-14-2-22-12-22-12 12-4 20 2 22 12zM50 70c14-2 20-12 20-12-12-2-18 4-20 12z" fill="#43c25a"/>${stage?[0,72,144,216,288].map(a=>`<ellipse cx="50" cy="${22}" rx="11" ry="16" fill="${c}" stroke="${KG.shade(c,-60)}" stroke-width="3" transform="rotate(${a} 50 36)"/>`).join('')+'<circle cx="50" cy="36" r="10" fill="#ffd23f" stroke="#9a6a08" stroke-width="3"/>':'<ellipse cx="50" cy="64" rx="8" ry="11" fill="'+c+'" stroke="'+KG.shade(c,-60)+'" stroke-width="3"/>'}</svg>`;
+KG.game({id:'garden',title:'Rainbow Number Garden',tag:'Number sense',scene:'garden',song:'meadow',rounds:10,
+  skill:'Practice: matching numerals 1 to 10 with groups of raindrops',
+  blurb:'Each flower needs the right number of raindrops to bloom. Match the number to the raindrops and grow a rainbow garden!',
+  intro:{who:'ali',text:'Our garden is thirsty!'},
+  winTitle:'Rainbow Garden!',winText:'All ten flowers are blooming. You matched every number!',winSay:'Look, a rainbow! You made the whole garden bloom!',
+  build(stage,api){
+    stage.innerHTML='<div class="ng"><div class="clouds" id="clouds"></div><div class="pot"><div class="plant" id="plant"></div><div class="potbox"><div class="sign" id="sign"></div></div></div><div class="row" id="row">'+'<div></div>'.repeat(10)+'</div></div>';
+    const clouds=KG.$('#clouds'),plant=KG.$('#plant'),sign=KG.$('#sign'),row=KG.$('#row');
+    const order=KG.shuffle([1,2,3,4,5]).concat(KG.shuffle([6,7,8,9,10]));
+    const rb=KG.el('div','rainbow',`<svg viewBox="0 0 200 100">${RB.slice(0,7).map((c,k)=>`<path d="M${10+k*7} 100a${90-k*7} ${90-k*7} 0 0 1 ${180-k*14} 0" fill="none" stroke="${c}" stroke-width="7"/>`).join('')}</svg>`);document.body.appendChild(rb);
+    function rain(from,to){const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();for(let k=0;k<14;k++){const d=KG.el('div','rain');d.style.left=a.left+a.width*(.2+Math.random()*.6)+'px';d.style.top=a.bottom-10+'px';document.body.appendChild(d);
+      const an=d.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${(b.left+b.width/2)-(a.left+a.width/2)+(Math.random()-.5)*60}px,${b.top-a.bottom+30}px)`,opacity:.3}],{duration:600+Math.random()*300,delay:k*40,easing:'ease-in'});an.onfinish=()=>d.remove()}KG.sfx.splash()}
+    return{round(i){const n=order[i],numMode=i%2===0,col=RB[i];
+      plant.innerHTML=flower(col,false);plant.firstChild.style.transform='scale(.8)';
+      sign.innerHTML=numMode?`<span class="bn">${n}</span>`:KG.dotsGrid(n,'#5ab8ff',true);
+      const set=new Set([n]);while(set.size<3){const d=n+KG.pick([-3,-2,-1,1,2,3]);if(d>=1&&d<=10)set.add(d)}
+      clouds.innerHTML='';KG.shuffle([...set]).forEach(v=>{const b=KG.el('button','cloud',numMode?KG.dotsGrid(v,'#5ab8ff',true):`<span class="bn">${v}</span>`);b.setAttribute('aria-label',v+(numMode?' raindrops':''));b.dataset.v=v;
+        b.onclick=()=>{if(api.locked)return;
+          if(v===n){api.lock();rain(b,plant);setTimeout(()=>{plant.innerHTML=flower(col,true);plant.firstChild.style.transform='scale(.3)';requestAnimationFrame(()=>requestAnimationFrame(()=>plant.firstChild.style.transform='scale(1)'));row.children[i].innerHTML=flower(col,true);
+            if(i===9)setTimeout(()=>rb.classList.add('show'),600);api.correct({force:true,el:plant,line:`<b>${n}</b> raindrop${n>1?'s':''}! The flower is blooming!`,delay:2600})},700)}
+          else{const k=api.wrong({el:b,line:numMode?`Count the raindrops. We need <b>${n}</b>.`:`Count the drops on the sign. How many?`});if(k>=2)[...clouds.children].forEach(x=>{if(+x.dataset.v===n)x.classList.add('glow')})}};clouds.appendChild(b)});
+      api.prompt(api.hero(i),numMode?`This flower needs <b>${n}</b> raindrop${n>1?'s':''}. Which cloud has ${n}?`:'Count the raindrops on the sign. Which cloud has that <b>number</b>?');
+    }};
+  }});
+</script>
+</body></html>

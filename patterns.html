@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Matthew's Pattern Machine</title>
+<style>
+.pm{width:min(680px,100%);display:grid;gap:clamp(12px,3vh,24px);justify-items:center}
+.machine{width:100%;position:relative;padding:16px 14px 18px;border-radius:18px;background:linear-gradient(#9aa6bb,#7d889c);border:4px solid #3e4657;box-shadow:inset 0 4px 0 rgba(255,255,255,.35),inset 0 -6px 0 rgba(0,0,0,.2),0 8px 0 rgba(42,31,61,.3)}
+.lights{display:flex;gap:8px;justify-content:center;margin-bottom:10px}
+.lights i{width:16px;height:16px;border-radius:4px;background:#5a2a3a;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
+.machine.on .lights i{background:#7dff8a;box-shadow:0 0 10px #7dff8a;animation:blink .3s steps(2) infinite}
+.machine.on .lights i:nth-child(2n){animation-delay:.15s}
+@keyframes blink{50%{opacity:.4}}
+.belt{display:flex;gap:clamp(4px,1.2vw,10px);justify-content:center;padding:12px 10px;border-radius:12px;background:repeating-linear-gradient(90deg,#2b2f3a 0 18px,#353a47 18px 22px);box-shadow:inset 0 6px 0 rgba(0,0,0,.35)}
+.it{flex:1;max-width:84px;aspect-ratio:1;display:grid;place-items:center;border-radius:10px;transition:transform .15s}
+.it svg{width:92%;height:92%}
+.it.hl{transform:translateY(-10px) scale(1.12);filter:drop-shadow(0 0 10px #fff)}
+.it.q{background:rgba(255,255,255,.1);border:4px dashed #ffc93c;font-family:var(--display);font-size:clamp(1.6rem,6vw,2.6rem);color:#ffc93c;animation:kg-bob 1s ease-in-out infinite}
+.gears{position:absolute;right:-14px;top:-22px;display:flex}
+.gear{width:52px;height:52px;animation:spin 4s linear infinite}
+.gear:nth-child(2){width:36px;height:36px;margin-top:30px;margin-left:-8px;animation-direction:reverse}
+.machine.on .gear{animation-duration:.6s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,3vw,18px);width:min(420px,100%)}
+.opts .kg-card{aspect-ratio:1;padding:14%}
+.opts svg{width:100%;height:100%}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const C=KG.COLORS;
+const gearSVG=c=>`<svg class="gear" viewBox="0 0 100 100"><g fill="${c}" stroke="#3e4657" stroke-width="4">${[0,45,90,135].map(a=>`<rect x="42" y="2" width="16" height="96" rx="3" transform="rotate(${a} 50 50)"/>`).join('')}<circle cx="50" cy="50" r="32"/></g><circle cx="50" cy="50" r="11" fill="#3e4657"/></svg>`;
+const TOK={red:{n:'red',svg:KG.cubeSVG(C.red)},blue:{n:'blue',svg:KG.cubeSVG(C.blue)},yellow:{n:'yellow',svg:KG.cubeSVG(C.yellow)},green:{n:'green',svg:KG.cubeSVG(C.green)},purple:{n:'purple',svg:KG.cubeSVG(C.purple)},
+  circle:{n:'circle',svg:KG.shapeSVG('circle',C.orange)},star:{n:'star',svg:KG.shapeSVG('star',C.yellow)},heart:{n:'heart',svg:KG.shapeSVG('heart',C.pink)},triangle:{n:'triangle',svg:KG.shapeSVG('triangle',C.green)}};
+const COLK=['red','blue','yellow','green','purple'],SHK=['circle','star','heart','triangle'];
+function plan(i){const pk=(arr,n)=>KG.shuffle(arr).slice(0,n);
+  if(i<3){const[a,b]=pk(COLK,2);return{unit:[a,b],L:5}}
+  if(i<5){const[a,b]=pk(COLK,2);return{unit:i===3?[a,a,b]:[a,b,b],L:i===3?5:4}}
+  if(i<7){const[a,b,c]=pk(COLK,3);return{unit:[a,b,c],L:i===5?4:5}}
+  if(i<9){const[a,b]=pk(SHK,2);return{unit:i===7?[a,b]:[a,a,b],L:5}}
+  const[a,b,c]=pk(SHK,3);return{unit:[a,b,c],L:5}}
+KG.game({id:'patterns',title:'Matthew’s Pattern Machine',tag:'Patterns',scene:'lab',song:'march',rounds:10,
+  skill:'Practice: AB, AAB, ABB and ABC patterns with colors and shapes',
+  blurb:'Matthew built a robot machine that only works when you feed it the right pattern. What comes next?',
+  intro:{who:'matthew',text:'Welcome to my lab! My Pattern Machine needs your help.'},
+  winTitle:'Machine Powered!',winText:'You found every pattern. Matthew’s robot is dancing!',winSay:'Beep boop! You powered up my machine! You are a pattern pro!',
+  build(stage,api){
+    stage.innerHTML=`<div class="pm"><div class="machine" id="mc"><div class="gears">${gearSVG('#c6a24a')}${gearSVG('#b9c3d6')}</div><div class="lights">${'<i></i>'.repeat(8)}</div><div class="belt" id="belt"></div></div><div class="opts" id="opts"></div></div>`;
+    const belt=KG.$('#belt'),opts=KG.$('#opts'),mc=KG.$('#mc');
+    function readOut(seq,L,who){const els=[...belt.children];api.beats(L+1,k=>{els.forEach(e=>e.classList.remove('hl'));const e=els[k];if(!e)return;e.classList.add('hl');if(k<L)KG.tone(392*Math.pow(2,KG.COLORS?(['red','blue','yellow','green','purple','circle','star','heart','triangle'].indexOf(seq[k])*2)/12:0),.15,{type:'triangle',g:.12})})}
+    return{round(i){
+      mc.classList.remove('on');const p=plan(i),seq=[];for(let k=0;k<=p.L;k++)seq.push(p.unit[k%p.unit.length]);const ans=seq[p.L];
+      belt.innerHTML='';seq.slice(0,p.L).forEach(k=>belt.appendChild(KG.el('div','it',TOK[k].svg)));const q=KG.el('div','it q','?');belt.appendChild(q);
+      const pool=(SHK.includes(ans)?SHK:COLK).filter(k=>k!==ans);const choices=KG.shuffle([ans].concat(KG.shuffle(p.unit.filter(k=>k!==ans).concat(pool)).filter((v,j,a)=>a.indexOf(v)===j).slice(0,2)));
+      opts.innerHTML='';
+      choices.forEach(k=>{const b=KG.el('button','kg-card',TOK[k].svg);b.setAttribute('aria-label',TOK[k].n);b.onclick=()=>{if(api.locked)return;
+        if(k===ans){api.lock();b.style.visibility='hidden';KG.fly(b,q,TOK[k].svg).then(()=>{q.className='it';q.innerHTML=TOK[k].svg;mc.classList.add('on');KG.sfx.whoosh();
+          const words=seq.map(s=>TOK[s].n);api.correct({force:true,el:q,who:'matthew',line:`${KG.praise('matthew')} ${words.join(', ')}!`,delay:3200})})}
+        else{const n=api.wrong({el:b,line:`Hmm, not ${TOK[k].n}. Say the pattern out loud with me!`});if(n>=2)[...opts.children].forEach(x=>{if(x.getAttribute('aria-label')===TOK[ans].n)x.classList.add('glow')})}};opts.appendChild(b)});
+      const who=i%3===0?'matthew':api.hero(i);const names=seq.slice(0,p.L).map(s=>TOK[s].n).join(', ');
+      api.prompt(who,`${names}... What comes <b>next</b>?`);readOut(seq,p.L,who);
+    }};
+  }});
+</script>
+</body></html>

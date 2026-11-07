@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Sorting Spaceship</title>
+<style>
+.ss{width:min(680px,100%);height:100%;display:grid;grid-template-rows:1fr auto;gap:12px;justify-items:center}
+.beam{position:relative;width:min(260px,70%);display:grid;place-items:center;align-self:stretch}
+.beam::before{content:"";position:absolute;top:0;bottom:0;left:15%;right:15%;background:linear-gradient(rgba(126,224,255,.55),rgba(126,224,255,.05));clip-path:polygon(35% 0,65% 0,100% 100%,0 100%)}
+.item{position:relative;width:clamp(90px,22vh,170px);aspect-ratio:1;animation:float 2.4s ease-in-out infinite}
+.item svg{width:100%;height:100%}
+@keyframes float{50%{transform:translateY(-10px) rotate(3deg)}}
+.bins{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:clamp(8px,2.5vw,16px);width:100%}
+.bin{border:0;padding:10px 8px 12px;border-radius:16px 16px 22px 22px;background:linear-gradient(#e9e9f2,#b9b9cc);border:4px solid #3e4657;box-shadow:inset 0 -8px 0 rgba(0,0,0,.15),0 6px 0 rgba(0,0,0,.3);display:grid;justify-items:center;gap:4px;position:relative}
+.bin .lab{width:clamp(50px,12vw,80px);aspect-ratio:1;display:grid;place-items:center}
+.bin .lab svg{width:100%;height:100%}
+.bin .lab.sz{transition:transform .2s}
+.item svg{transition:transform .3s cubic-bezier(.3,1.5,.5,1)}
+.bin .sw{width:70%;aspect-ratio:1;border-radius:12px;border:4px solid rgba(42,31,61,.5)}
+.bin .nm{font-family:var(--display);font-size:clamp(.95rem,3.4vw,1.25rem);color:#2a1f3d}
+.bin .ct{position:absolute;top:-12px;right:-8px;min-width:30px;height:30px;padding:0 6px;border-radius:15px;background:#ff5c8d;color:#fff;font-weight:700;display:grid;place-items:center;border:3px solid #fff}
+.rocket{position:fixed;left:50%;bottom:-200px;width:120px;z-index:15;transform:translateX(-50%)}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const C=KG.COLORS;
+const PHASES=[
+ {rule:'color',n:4,bins:[{k:'red',c:C.red},{k:'blue',c:C.blue},{k:'yellow',c:C.yellow}],say:'Sort by <b>color</b>! Which bin matches?'},
+ {rule:'size',n:4,bins:[{k:'big'},{k:'small'}],say:'Now sort by <b>size</b>! Is it big or small?'},
+ {rule:'shape',n:4,bins:[{k:'star'},{k:'circle'},{k:'triangle'}],say:'Now sort by <b>shape</b>! Which bin has the same shape?'}];
+const SPACE={star:'star',circle:'planet',triangle:'space rock'};
+KG.game({id:'sorting',title:'The Sorting Spaceship',tag:'Sorting',scene:'space',song:'space',rounds:12,
+  skill:'Practice: sorting by color, then size, then shape',
+  blurb:'The rocket is a mess before launch! Put each space thing in the right bin so the friends can blast off.',
+  intro:{who:'matthew',text:'Our rocket is a mess! Let’s clean up before we fly.'},
+  winTitle:'Blast Off!',winText:'Everything is sorted. The rocket is flying to the stars!',winSay:'Three, two, one, blast off! You sorted everything!',
+  build(stage,api){
+    stage.innerHTML='<div class="ss"><div class="beam"><div class="item" id="item"></div></div><div class="bins" id="bins"></div></div>';
+    const item=KG.$('#item'),bins=KG.$('#bins');let phase=-1,cur,counts={};
+    function drawBins(P){bins.innerHTML='';bins.style.setProperty('--n',P.bins.length);counts={};
+      P.bins.forEach(b=>{counts[b.k]=0;let lab;
+        if(P.rule==='color')lab=`<div class="sw" style="background:${b.c}"></div>`;
+        else if(P.rule==='size')lab=`<div class="lab sz" style="transform:scale(${b.k==='big'?1.15:.42})"></div>`;
+        else lab=`<div class="lab">${KG.shapeSVG(b.k,'#d8d8e6')}</div>`;
+        const el=KG.el('button','bin',`${lab}<span class="nm">${b.k}</span><span class="ct">0</span>`);el.dataset.k=b.k;el.setAttribute('aria-label',b.k+' bin');el.onclick=()=>drop(el,b.k);bins.appendChild(el)})}
+    function newItem(P){let kind,color,scale=1,key;
+      if(P.rule==='color'){const b=KG.pick(P.bins);key=b.k;color=b.c;kind=KG.pick(['star','circle','triangle','hexagon'])}
+      else if(P.rule==='size'){key=KG.pick(['big','small']);scale=key==='big'?1.15:.38;kind=KG.pick(['star','circle','heart','triangle']);color=KG.pick(Object.values(C));bins.querySelectorAll('.lab.sz').forEach(l=>l.innerHTML=KG.shapeSVG(kind,color))}
+      else{key=KG.pick(['star','circle','triangle']);kind=key;color=KG.pick(Object.values(C))}
+      cur={key,html:KG.shapeSVG(kind,color),kind,color,scale};item.innerHTML=cur.html;item.style.transform='';item.firstChild.style.transform=`scale(${scale})`;item.setAttribute('aria-label',`${key==='big'||key==='small'?key+' ':''}${kind}`)}
+    function drop(el,k){if(api.locked)return;
+      if(k===cur.key){api.lock();const src=item.firstChild;KG.fly(item,el,cur.html,500).then(()=>{counts[k]++;el.querySelector('.ct').textContent=counts[k];el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop')});item.innerHTML='';
+        const P=PHASES[phase];const line=P.rule==='color'?`${cur.key[0].toUpperCase()+cur.key.slice(1)} goes with ${cur.key}!`:P.rule==='size'?`That ${cur.kind} is <b>${cur.key}</b>!`:`A <b>${cur.key}</b> goes with the ${cur.key}s!`;
+        api.correct({force:true,el,line,delay:1900})}
+      else{const P=PHASES[phase];const n=api.wrong({el,line:P.rule==='color'?`Look at the color. It is <b>${cur.key}</b>!`:P.rule==='size'?`Is it big or small? Compare with the bins!`:`Look at the shape. It is a <b>${cur.key}</b>!`});if(n>=2)[...bins.children].forEach(x=>{if(x.dataset.k===cur.key)x.classList.add('glow')})}}
+    return{round(i){const p=i<4?0:i<8?1:2;const P=PHASES[p];let first=false;if(p!==phase){phase=p;drawBins(P);first=true}else[...bins.children].forEach(x=>x.classList.remove('glow'));
+      newItem(P);api.prompt(api.hero(i),first?P.say:KG.pick(['Where does this one go?','Which bin?','Sort this one!']));
+      if(i===11){const done=api.finish;api.finish=()=>{const r=KG.el('div','rocket',`<svg viewBox="0 0 60 120"><path d="M30 4C14 22 12 50 14 80h32c2-30 0-58-16-76z" fill="#e9e9f2" stroke="#3e4657" stroke-width="4"/><circle cx="30" cy="44" r="9" fill="#7ee0ff" stroke="#3e4657" stroke-width="4"/><path d="M14 64 2 92h14zM46 64l12 28H44z" fill="#ff5c8d" stroke="#3e4657" stroke-width="4"/><path d="M20 82h20l-10 34z" fill="#ffc93c"/></svg>`);document.body.appendChild(r);KG.sfx.whoosh();r.animate([{bottom:'-200px'},{bottom:'120vh'}],{duration:2400,easing:'ease-in',fill:'forwards'});done()}}
+    }};
+  }});
+</script>
+</body></html>

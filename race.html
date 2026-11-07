@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Great Friendship Race</title>
+<style>
+.gr{width:min(720px,100%);display:grid;gap:clamp(10px,2vh,18px);justify-items:center;position:relative}
+.board{position:relative;width:100%;display:grid;grid-template-columns:repeat(7,1fr);gap:clamp(3px,.8vw,6px);padding:clamp(6px,1.4vw,10px);border-radius:16px;background:#6e4322;box-shadow:0 8px 0 rgba(42,31,61,.3)}
+.cell{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:clamp(.8rem,2.6vw,1.1rem);color:rgba(42,31,61,.55);background:#9be27a;box-shadow:inset 0 -4px 0 rgba(0,0,0,.15);font-variant-numeric:tabular-nums;position:relative}
+.cell:nth-child(odd){background:#b6ec98}
+.cell.ch{background:#ffe27a}
+.cell.ch svg{position:absolute;width:62%;opacity:.9}
+.cell.ch.done svg{filter:grayscale(1);opacity:.35}
+.cell.start,.cell.fin{background:#fffdf6;font-family:var(--display);font-size:clamp(.6rem,2vw,.9rem);color:var(--ink)}
+.cell.fin{background:repeating-conic-gradient(#2a1f3d 0 25%,#fff 0 50%) 0 0/50% 50%;color:#fff;text-shadow:0 0 4px #000}
+.tok{position:absolute;z-index:3;transition:left .25s ease-out,top .25s ease-out;pointer-events:none;display:grid;place-items:center}
+.tok.team{display:flex}
+.tok.team img{width:58%;aspect-ratio:1;border-radius:50%;border:2px solid #fff;background:#fff;object-fit:cover;margin-left:-22%}
+.tok.team img:first-child{margin-left:0}
+.tok svg{width:80%}
+.tok.hop{animation:hop .25s}
+@keyframes hop{50%{transform:translateY(-40%)}}
+.ctl{display:flex;align-items:center;gap:clamp(12px,4vw,24px);flex-wrap:wrap;justify-content:center}
+.die{width:clamp(80px,20vw,110px);aspect-ratio:1;border:0;background:none;padding:0;transition:transform .15s}
+.die svg{width:100%;height:100%}
+.die.roll{animation:roll .5s linear}
+@keyframes roll{to{transform:rotate(360deg)}}
+.die.glow{border-radius:20px}
+.nopts{display:flex;gap:10px}
+.nopts .kg-card{width:clamp(64px,16vw,86px);aspect-ratio:1;font-weight:700;font-size:clamp(1.8rem,6vw,2.6rem)}
+.modal{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:rgba(42,31,61,.35);border-radius:16px}
+.modal .kg-panel{width:min(460px,96%);display:grid;gap:10px;justify-items:center}
+.modal h3{margin:0;font-family:var(--display);font-weight:400;color:#fff;text-shadow:0 2px 0 var(--wood-d);font-size:clamp(1.2rem,4vw,1.6rem)}
+.modal .qs{display:grid;grid-template-columns:repeat(var(--n,3),1fr);gap:clamp(8px,2.5vw,14px);width:100%;max-width:380px}
+.modal .qs .kg-card{width:100%;min-width:0;aspect-ratio:1;font-weight:700;font-size:clamp(1.8rem,6vw,2.6rem);padding:12%;overflow:hidden}
+.modal .qs svg{display:block;width:100%;height:100%}
+.modal .show{background:var(--paper);border-radius:12px;padding:6px 12px;font-weight:700;font-size:clamp(1.4rem,5vw,2rem);display:flex;gap:10px;align-items:center}
+.modal .show svg{width:clamp(70px,16vw,100px)}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const CH=[4,8,12,16];
+const hatSVG='<svg viewBox="0 0 100 100"><path d="M50 4 76 70H24z" fill="#7b4fd6" stroke="#3a1f7a" stroke-width="5" stroke-linejoin="round"/><ellipse cx="50" cy="74" rx="44" ry="12" fill="#7b4fd6" stroke="#3a1f7a" stroke-width="5"/><path d="M44 30l4-8 4 8 8 1-6 6 2 8-8-4-8 4 2-8-6-6z" fill="#ffd23f"/><circle cx="38" cy="86" r="5" fill="#fff"/><circle cx="62" cy="86" r="5" fill="#fff"/><circle cx="38" cy="86" r="2.5" fill="#2a1f3d"/><circle cx="62" cy="86" r="2.5" fill="#2a1f3d"/><path d="M42 96q8-6 16 0" stroke="#2a1f3d" stroke-width="3" fill="none"/></svg>';
+function cellIndex(p){const r=Math.floor(p/7),c=p%7;const col=r%2===0?c:6-c;return(2-r)*7+col}
+KG.game({id:'race',title:'The Great Friendship Race',tag:'Review',scene:'track',song:'march',rounds:5,
+  skill:'Practice: counting dice dots, plus challenges with shapes, more and fewer, next numbers and adding',
+  blurb:'The friends race the grumpy wizard to the finish! Roll the dice, count the dots, and answer star challenges along the way.',
+  intro:{who:'wynea',text:'The grumpy wizard wants a race! Let’s win it together!'},
+  winTitle:'We Won the Race!',winText:'You counted, compared and solved every challenge. Friendship wins!',winSay:'We won! We won! Friendship wins every time!',
+  build(stage,api){
+    stage.innerHTML='<div class="gr" id="gr"><div class="board" id="board"></div><div class="ctl"><button class="die glow" id="die" aria-label="Roll the dice"></button><div class="nopts" id="nopts"></div></div></div>';
+    const board=KG.$('#board'),die=KG.$('#die'),nopts=KG.$('#nopts'),gr=KG.$('#gr');
+    const cells=[];for(let k=0;k<21;k++)cells.push(null);
+    for(let v=0;v<21;v++){}
+    const order=[];for(let p=0;p<21;p++)order[cellIndex(p)]=p;
+    order.forEach(p=>{const c=KG.el('div','cell'+(CH.includes(p)?' ch':'')+(p===0?' start':'')+(p===20?' fin':''),p===0?'START':p===20?'END':CH.includes(p)?KG.starSVG():String(p));cells[p]=c;board.appendChild(c)});
+    const team=KG.el('div','tok team',KG.ORDER.map(id=>`<img src="${KG.HEROES[id].head}" alt="">`).join(''));const wiz=KG.el('div','tok',hatSVG);board.appendChild(wiz);board.appendChild(team);
+    let tp=0,wp=0,done=[],state='roll',roll=0,turn=0;
+    function place(tok,p,off){const c=cells[p];const s=c.offsetWidth;tok.style.width=s*(tok===team?1.1:.7)+'px';tok.style.height=s*.7+'px';tok.style.left=c.offsetLeft+(tok===team?-s*.05:s*.3)+'px';tok.style.top=c.offsetTop+(tok===team?-s*.2:s*.35)+'px'}
+    function placeAll(){place(team,tp);place(wiz,wp)}
+    addEventListener('resize',placeAll);
+    die.innerHTML=KG.diceSVG(6);
+    function askRoll(){state='roll';api.unlock();die.classList.add('glow');nopts.innerHTML='';api.prompt(api.hero(turn),turn===0?'Tap the <b>dice</b> to roll!':KG.pick(['Our turn! Tap the <b>dice</b>!','Roll the <b>dice</b>!']))}
+    die.onclick=()=>{if(state!=='roll'||api.locked)return;state='rolling';die.classList.remove('glow');die.classList.remove('roll');void die.offsetWidth;die.classList.add('roll');
+      roll=KG.rnd(1,6);let k=0;const t=setInterval(()=>{die.innerHTML=KG.diceSVG(k<7?KG.rnd(1,6):roll);KG.sfx.tick();if(++k>7){clearInterval(t);askCount()}},65)};
+    function askCount(){state='count';const set=new Set([roll]);while(set.size<3){const d=roll+KG.pick([-2,-1,1,2]);if(d>=1&&d<=6)set.add(d)}
+      nopts.innerHTML='';KG.shuffle([...set]).forEach(v=>{const b=KG.el('button','kg-card',String(v));b.onclick=()=>{if(state!=='count'||api.locked)return;
+        if(v===roll){state='moving';nopts.innerHTML='';KG.sfx.correct(roll);move(team,roll,()=>afterTeam())}
+        else{const n=api.wrong({el:b,line:'Count the dots on the dice one by one!'});if(n>=2)[...nopts.children].forEach(x=>{if(+x.textContent===roll)x.classList.add('glow')})}};nopts.appendChild(b)});
+      api.prompt(api.hero(turn+1),'How many <b>dots</b> are on the dice?')}
+    function move(tok,n,cb){const isTeam=tok===team;const steps=Math.min(n,20-(isTeam?tp:wp));if(steps<=0){cb();return}
+      const total=api.beats(steps,k=>{if(isTeam)tp++;else wp++;place(tok,isTeam?tp:wp);tok.classList.remove('hop');void tok.offsetWidth;tok.classList.add('hop');KG.sfx.count(k);if(isTeam)KG.say(String(k+1)+'!',api.hero(turn),{now:true,rate:.15})},1);
+      setTimeout(cb,total+250)}
+    function afterTeam(){const pend=CH.filter(c=>c<=tp&&!done.includes(c));if(pend.length){challenge(pend[0],afterTeam);return}
+      if(tp>=20){api.lock();api.correct({force:true,stay:true,el:team,who:'wynea',line:'We reached the finish line!'});setTimeout(()=>api.next(),1800);return}
+      wizardTurn()}
+    function wizardTurn(){state='wizard';const r=Math.max(0,Math.min(KG.rnd(1,2),Math.min(18,tp+1)-wp));
+      api.talk(api.hero(turn+2),r?`The grumpy wizard moves ${r}. Hurry!`:'The grumpy wizard is too tired to move! Hee hee!');
+      setTimeout(()=>move(wiz,r,()=>{turn++;askRoll()}),1400)}
+    function challenge(c,cb){api.lock();done.push(c);cells[c].classList.add('done');const type=CH.indexOf(c);const m=KG.el('div','modal');let html='',ans,opts=[],q;
+      if(type===0){const shapes=KG.shuffle(['triangle','circle','square','star','heart']).slice(0,3);ans=shapes[0];q=`Which one is the <b>${ans}</b>?`;opts=KG.shuffle(shapes).map(s=>({v:s,h:KG.shapeSVG(s,KG.pick(Object.values(KG.COLORS)))}))}
+      else if(type===1){const a=KG.rnd(2,5),b=a+KG.rnd(2,4);const L=KG.shuffle([a,b]);ans=Math.max(a,b);q='Which group has <b>more</b>?';opts=L.map(v=>({v,h:KG.dotsGrid(v,'#ff5c8d',true)}))}
+      else if(type===2){const n=KG.rnd(3,15);ans=n+1;q=`What number comes after <b>${n}</b>?`;html=`<div class="show">${n-1}, ${n}, ?</div>`;const set=new Set([ans]);while(set.size<3)set.add(ans+KG.pick([-2,-1,1,2]));opts=KG.shuffle([...set]).map(v=>({v,h:String(v)}))}
+      else{const a=KG.rnd(1,4),b=KG.rnd(1,3);ans=a+b;q=`${a} and ${b}. How many in <b>all</b>?`;html=`<div class="show">${KG.dotsGrid(a,'#3d7bff',true)}+${KG.dotsGrid(b,'#3d7bff',true)}</div>`;const set=new Set([ans]);while(set.size<3){const d=ans+KG.pick([-2,-1,1,2]);if(d>0)set.add(d)}opts=KG.shuffle([...set]).map(v=>({v,h:String(v)}))}
+      m.innerHTML=`<div class="kg-panel"><h3>Star challenge!</h3>${html}<div class="qs"></div></div>`;const qs=m.querySelector('.qs');qs.style.setProperty('--n',opts.length);
+      opts.forEach(o=>{const b=KG.el('button','kg-card',o.h);b.onclick=()=>{if(m.dataset.done)return;
+        if(o.v===ans){m.dataset.done=1;api.correct({force:true,stay:true,el:b,line:KG.praise(api.hero(turn))+' You won a star!'});setTimeout(()=>{m.remove();api.next();api.lock();cb()},2200)}
+        else{const n=api.wrong({el:b,line:'Hmm, look carefully and try again!'});if(n>=2)[...qs.children].forEach((x,k)=>{if(opts[k].v===ans)x.classList.add('glow')})}};qs.appendChild(b)});
+      gr.appendChild(m);api.unlock();api.prompt(api.hero(turn+1),q)}
+    return{round(i){if(i===0){tp=0;wp=0;requestAnimationFrame(placeAll);setTimeout(placeAll,300);askRoll()}else api.lock()}};
+  }});
+</script>
+</body></html>

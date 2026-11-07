@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wynea's Clock Tower Quest</title>
+<style>
+.ct{width:min(760px,100%);display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(12px,3vw,28px)}
+.clockwrap{width:min(46vh,78vw,330px);aspect-ratio:1;position:relative}
+.clockwrap svg{width:100%;height:100%;overflow:visible}
+.hand{transition:transform .8s cubic-bezier(.3,1.4,.5,1);transform-origin:150px 150px}
+.num{cursor:default}
+.setmode .num{cursor:pointer}
+.setmode .numhit{fill:rgba(255,201,60,.0);transition:fill .2s}
+.setmode .numhit:hover{fill:rgba(255,201,60,.35)}
+.side{display:grid;gap:12px;justify-items:center;min-width:0}
+.act{font-family:var(--display);font-size:clamp(1.1rem,4vw,1.5rem);color:#fff;background:rgba(42,31,61,.6);padding:.3em .9em;border-radius:14px;text-align:center}
+.opts{display:grid;gap:10px;width:min(240px,80vw)}
+.opts .kg-card{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.opts .w{font-family:var(--display);font-size:clamp(1.15rem,4.2vw,1.5rem)}
+.opts .d{font-weight:700;font-variant-numeric:tabular-nums;font-size:clamp(1.1rem,4vw,1.4rem);background:#2a1f3d;color:#7dff8a;padding:.1em .45em;border-radius:8px;font-family:ui-monospace,Menlo,monospace}
+.tip{font-weight:600;color:#fff;text-shadow:0 2px 0 rgba(42,31,61,.5);text-align:center;max-width:24ch}
+@media (max-width:560px){.ct{flex-direction:column;flex-wrap:nowrap}.clockwrap{width:min(36vh,74vw)}}
+</style></head><body>
+<script src="shared.js"></script>
+<script>
+const ROUNDS=[{t:'read',h:7,act:'wake up'},{t:'set',h:8,act:'go to school'},{t:'read',h:10,act:'play at recess'},{t:'set',h:12,act:'eat lunch'},{t:'read',h:3,act:'have a snack'},{t:'set',h:5,act:'play outside'},{t:'read',h:6,act:'eat dinner'},{t:'set',h:9,act:'go to bed'}];
+function face(){let s=`<svg viewBox="0 0 300 300"><circle cx="150" cy="158" r="140" fill="rgba(42,31,61,.25)"/><circle cx="150" cy="150" r="140" fill="#c44a4a" stroke="#6e2222" stroke-width="6"/><circle cx="150" cy="150" r="122" fill="#fffdf6" stroke="#6e4322" stroke-width="4"/>`;
+  for(let m=0;m<60;m++){const a=m*6*Math.PI/180,r1=m%5?112:106;s+=`<line x1="${150+Math.sin(a)*r1}" y1="${150-Math.cos(a)*r1}" x2="${150+Math.sin(a)*117}" y2="${150-Math.cos(a)*117}" stroke="#6e4322" stroke-width="${m%5?2:4}"/>`}
+  for(let h=1;h<=12;h++){const a=h*30*Math.PI/180,x=150+Math.sin(a)*86,y=150-Math.cos(a)*86;s+=`<g class="num" data-h="${h}"><circle class="numhit" cx="${x}" cy="${y}" r="22" fill="transparent"/><text x="${x}" y="${y+11}" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="32" fill="#2a1f3d">${h}</text></g>`}
+  s+=`<g class="hand" id="mh"><rect x="145" y="44" width="10" height="112" rx="5" fill="#3d7bff" stroke="#1d3a8a" stroke-width="3"/></g><g class="hand" id="hh"><rect x="141" y="80" width="18" height="76" rx="9" fill="#ff5c8d" stroke="#a8204e" stroke-width="3"/></g><circle cx="150" cy="150" r="12" fill="#ffc93c" stroke="#6e4322" stroke-width="4"/></svg>`;return s}
+KG.game({id:'clock',title:'Wynea’s Clock Tower Quest',tag:'Time',scene:'clock',song:'meadow',rounds:8,
+  skill:'Practice: reading and setting clocks to the hour (o’clock)',
+  blurb:'The academy clock stopped! Help Wynea read the clock and move the short hand to fix the day.',
+  intro:{who:'wynea',text:'The clock tower stopped! I will climb up and fix it with you.'},
+  winTitle:'Clock Fixed!',winText:'You can tell time to the hour. The whole school is on time!',winSay:'Ding dong! The clock is fixed! You can tell time!',
+  build(stage,api){
+    stage.innerHTML=`<div class="ct"><div class="clockwrap" id="cw">${face()}</div><div class="side"><div class="act" id="act"></div><div class="opts" id="opts"></div><div class="tip" id="tip"></div></div></div>`;
+    const cw=KG.$('#cw'),hh=KG.$('#hh'),opts=KG.$('#opts'),act=KG.$('#act'),tip=KG.$('#tip');let cur,hourDeg=0;
+    function setHour(h){let target=h*30;while(target<hourDeg-180)target+=360;while(target>hourDeg+180)target-=360;hourDeg=target;hh.style.transform=`rotate(${hourDeg}deg)`}
+    cw.querySelectorAll('.num').forEach(n=>n.addEventListener('click',()=>{if(!cur||cur.t!=='set'||api.locked)return;const h=+n.dataset.h;setHour(h);KG.sfx.tick();
+      if(h===cur.h){api.correct({el:cw,line:`${h} o’clock! Time to ${cur.act}!`})}
+      else{const k=api.wrong({line:`That says ${h} o’clock. Move the short hand to <b>${cur.h}</b>!`});if(k>=2)tip.textContent=`Tap the number ${cur.h} on the clock.`}}));
+    return{round(i){cur=ROUNDS[i];opts.innerHTML='';tip.textContent='';act.textContent=`Time to ${cur.act}!`;
+      if(cur.t==='read'){cw.classList.remove('setmode');setHour(cur.h);
+        const set=new Set([cur.h]);while(set.size<3){set.add(KG.rnd(1,12))}
+        KG.shuffle([...set]).forEach(h=>{const b=KG.el('button','kg-card',`<span class="w">${h} o’clock</span><span class="d">${h}:00</span>`);b.onclick=()=>{if(api.locked)return;
+          if(h===cur.h)api.correct({el:b,line:`Yes! It’s <b>${h} o’clock</b>. Time to ${cur.act}!`});else{const k=api.wrong({el:b,line:`Look at the short pink hand. It points to <b>${cur.h}</b>.`});if(k>=2)[...opts.children].forEach(x=>{if(x.textContent.startsWith(cur.h+' '))x.classList.add('glow')})}};opts.appendChild(b)});
+        api.prompt(api.hero(i),`The long hand points to 12. The short hand points to <b>${cur.h}</b>. What time is it?`)}
+      else{cw.classList.add('setmode');setHour(cur.h===12?6:12);tip.textContent='Tap a number to move the short hand.';
+        api.prompt(api.hero(i),`We ${cur.act} at <b>${cur.h} o’clock</b>. Tap the ${cur.h} to move the short hand!`)}
+    }};
+  }});
+</script>
+</body></html>
