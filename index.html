@@ -24,6 +24,9 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
 
 /* ---- who's playing ---- */
 #scr-who{display:grid;align-content:start;gap:clamp(12px,2.6vh,22px)}
+.who-grown{display:flex;justify-content:center;margin-top:8px}
+.who-grown .ch-btn{font-family:var(--body);font-size:var(--fs-sm)}
+.grown a{color:var(--sky-d);font-weight:700}
 .who-head{display:flex;align-items:center;gap:var(--gap-3);padding-right:calc(var(--tap) + 8px)}
 .who-head .face{flex:none;width:clamp(64px,14vw,96px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#fff;border:4px solid var(--wynea);box-shadow:var(--lift);padding:0;cursor:pointer}
 .who-head .face img{width:100%;height:100%;object-fit:cover}
@@ -34,7 +37,8 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
 #scr-hub{display:grid;gap:clamp(8px,1.6vh,14px);align-content:start;width:min(1440px,100%)}
 /* the hear-again button sits at the top of the page and scrolls away, so it never covers a map stop */
 .ch-replay{position:absolute}
-.bar{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;padding-right:calc(var(--tap) + 10px)}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;row-gap:8px;padding-right:calc(var(--tap) + 10px)}
+#scr-hub .bar #book-slot{margin-left:auto}
 .bar .sp{flex:1}
 #player-slot{min-width:0;flex:0 1 auto}#player-slot .ch-player{max-width:100%}
 #prog{flex:none;white-space:nowrap}
@@ -153,6 +157,7 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
   </div>
   <div id="who-notices" class="ch-stack" style="gap:8px"></div>
   <div class="pgrid" id="pgrid"></div>
+  <div class="who-grown" id="who-grown"></div>
 </section>
 
 <!-- ADVENTURE MAP -->
@@ -163,6 +168,7 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
     <div class="sp"></div>
     <span id="book-slot"></span>
     <span id="music-slot"></span>
+    <span id="gear-slot"></span>
   </div>
   <div class="maphead">
     <div class="greet" id="greet"></div>
@@ -170,7 +176,7 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
   </div>
   <h2 class="ch-sr">Adventure map</h2>
   <div class="map" id="map"></div>
-  <div class="grown"><b>For grown-ups:</b> Each game takes about 3 to 5 minutes and practices one skill: counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense. The last game, the Friendship Race, reviews them all. The first three stops are open; finishing a stop opens the next one. Turn the sound on so the friends can read every instruction aloud. Each player’s stars are saved on this device.</div>
+  <div class="grown"><b>For grown-ups:</b> Each game takes about 3 to 5 minutes and practices one skill: counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense. The last game, the Friendship Race, reviews them all. The first three stops are open; finishing a stop opens the next one. Turn the sound on so the friends can read every instruction aloud. Each player’s stars are saved on this device. <span id="grown-link"></span></div>
 </section>
 
 
@@ -204,8 +210,9 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
 </section>
 <script src="core/config.js"></script><script src="core/store.js"></script>
 <script src="core/voice.js"></script>
-<script src="core/ui.js"></script>
+<script src="core/ui.js"></script><script src="core/break.js"></script>
 <script src="core/avatars.js"></script>
+<script src="core/profile-form.js"></script>
 <script src="shared.js"></script>
 <script>
 (function(){
@@ -276,40 +283,13 @@ function choose(id,card){
 
 /* ---------- ADD PLAYER (grown-up assisted) ---------- */
 function openAdd(){
-  const used=new Set(store.players().map(p=>p.avatar));
-  const free=CH.AVATARS.filter(a=>!used.has(a.id));
-  let avatar=(free.length?KG.pick(free):KG.pick(CH.AVATARS)).id,age=null;
-  const nameIn=h('input',{class:'ch-input',id:'pname',type:'text',maxlength:store.MAX_NAME,autocomplete:'off',autocapitalize:'words',spellcheck:'false',enterkeyhint:'done','aria-describedby':'pname-help perr'});
-  const count=h('span',{class:'help',id:'pname-help',text:`First name or nickname · 0/${store.MAX_NAME}`});
-  nameIn.addEventListener('input',()=>{count.textContent=`First name or nickname · ${nameIn.value.length}/${store.MAX_NAME}`;err.textContent=''});
-  const pick=h('div',{class:'ch-avpick',role:'radiogroup','aria-label':'Pick a picture'});
-  const drawPick=()=>{pick.innerHTML='';CH.AVATARS.forEach(a=>{const b=h('button',{type:'button',role:'radio','aria-checked':String(a.id===avatar),'aria-label':a.name,tabindex:a.id===avatar?'0':'-1',html:CH.avatarSVG(a.id)});
-    b.onclick=()=>{avatar=a.id;drawPick();pick.querySelector('[aria-checked="true"]').focus();KG.sfx.pop()};pick.appendChild(b)})};
-  pick.addEventListener('keydown',e=>{const i=CH.AVATARS.findIndex(a=>a.id===avatar),d={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!d)return;e.preventDefault();avatar=CH.AVATARS[(i+d+CH.AVATARS.length)%CH.AVATARS.length].id;drawPick();pick.querySelector('[aria-checked="true"]').focus()});
-  drawPick();
-  const seg=h('div',{class:'ch-seg',role:'group','aria-label':'Age (optional)'});
-  [4,5,6].forEach(n=>{const b=ui.bigButton({label:String(n),variant:'paper',ariaLabel:'Age '+n,onClick:()=>{age=age===n?null:n;[...seg.children].forEach((x,k)=>x.setAttribute('aria-pressed',String(age===k+4)))}});b.setAttribute('aria-pressed','false');seg.appendChild(b)});
-  const err=h('div',{class:'ch-err',id:'perr',role:'alert'});
-  const body=h('div',{class:'ch-stack'},[
-    h('p',{style:{margin:0},text:'Grown-up: type the child’s name, then let them pick their picture.'}),
-    h('div',{class:'ch-field'},[h('label',{for:'pname',text:'Name'}),nameIn,count]),
-    h('div',{class:'ch-field'},[h('span',{class:'lbl',text:'Picture'}),pick]),
-    h('div',{class:'ch-field'},[h('span',{class:'lbl',text:'Age (optional)'}),seg]),
-    err]);
-  const m=ui.modal({title:'Add a player',body,initialFocus:'#pname',actions:[
-    {label:'Cancel',variant:'paper'},
-    {label:'Save',variant:'leaf',icon:'plus',keepOpen:true,onClick:close=>{
-      const r=store.addPlayer({name:nameIn.value,avatar,age});
-      if(!r.ok){err.textContent=r.error==='full'?'This device already has 10 players.':'Please type a name (up to 15 letters).';fx.wobble(nameIn);nameIn.focus();return}
-      close();KG.sfx.correct(4);goWho(false,r.player.id);
-    }}]});
-  nameIn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();m.card.querySelector('.ch-modal__actions .ch-btn:last-child').click()}});
+  CH.profileForm({onSaved:p=>{KG.sfx.correct(4);goWho(false,p.id)}});
 }
 
 /* ---------- ADVENTURE MAP ---------- */
 const CFG=CH.config;
 const ICON=KG.gameIcons();
-const greet=ui.bubble();KG.$('#greet').appendChild(greet);greet.setCaptions(store.setting('captions'));
+const greet=ui.bubble();KG.$('#greet').appendChild(greet);
 
 /* tap a friend to say hi — each says a random friendly line */
 const HI={ali:['Hi! I’m Ali! Let’s learn together!','You’re doing great, friend!','I love counting with you!','Being kind is the best!','Let’s take turns and have fun!'],
@@ -419,6 +399,7 @@ function goHub(doGreet){
   KG.$('#prog').innerHTML=`${KG.starSVG()} ${total} · ${done}<span class="long"> of 12 stops</span><span aria-hidden="true" class="short">/12</span>`;
   KG.$('#prog').setAttribute('aria-label',`${total} stars. ${done} of 12 stops finished.`);
   buildMap();updateBookBtn(p);
+  setTimeout(()=>{if(!scr.hub.hidden&&CH.breakTime)CH.breakTime.check()},doGreet?5000:1200);
   const nx=CFG.nextStop(p);
   if(isPortrait()&&nx&&nx.index>1){const go=()=>{if(scrollY<40&&stops[nx.index])stops[nx.index].scrollIntoView({block:'center'})};requestAnimationFrame(go);setTimeout(go,350)}
   if(doGreet){
@@ -438,7 +419,7 @@ function goHub(doGreet){
 store.onChange(t=>{if(t==='external'){if(!scr.hub.hidden)goHub(false);else if(!scr.who.hidden)renderWho()}});
 
 /* ---------- STICKER BOOK ---------- */
-const bookGreet=ui.bubble();KG.$('#book-greet').appendChild(bookGreet);bookGreet.setCaptions(store.setting('captions'));
+const bookGreet=ui.bubble();KG.$('#book-greet').appendChild(bookGreet);
 const bookBtn=ui.iconButton({icon:'book',label:'My sticker book',onClick:()=>{startAudio();KG.sfx.pop();goBook()}});
 bookBtn.classList.add('book-btn');KG.$('#book-slot').appendChild(bookBtn);
 const bookBack=ui.iconButton({icon:'back',label:'Back to the map',onClick:()=>{startAudio();KG.sfx.pop();voice.cancel();goHub(false)}});
@@ -558,6 +539,11 @@ async function goCert(){
   lastLine={who:'wynea',html:'',spoken:`Congratulations, ${s}! You finished all twelve adventures. You are ready for Grade 1!`};
   voice.speak(lastLine.spoken,{who:'wynea'});
 }
+/* ---------- Grown-ups' Corner (behind the parent gate) ---------- */
+function openCorner(){startAudio();voice.cancel();ui.parentGate({onPass:()=>{try{sessionStorage.setItem('ch-gate',String(Date.now()))}catch(e){}location.href='grownups.html'}})}
+KG.$('#gear-slot').appendChild(ui.iconButton({icon:'gear',label:'Grown-ups’ Corner',onClick:openCorner}));
+KG.$('#who-grown').appendChild(ui.bigButton({label:'Grown-ups’ Corner',variant:'paper',icon:'gear',onClick:openCorner}));
+KG.$('#grown-link').appendChild(h('a',{href:'grownups.html',text:'Open Grown-ups’ Corner',onclick:e=>{e.preventDefault();openCorner()}}));
 /* print + save are for grown-ups (hold + "tap the number" check) */
 function grownUp(fn){startAudio();ui.parentGate({onPass:fn})}
 function printCert(){document.body.classList.add('printing-cert');const done=()=>{document.body.classList.remove('printing-cert');removeEventListener('afterprint',done)};addEventListener('afterprint',done);setTimeout(()=>{window.print();setTimeout(done,1500)},60)}
@@ -571,6 +557,7 @@ addEventListener('pointerdown',firstTap,true);addEventListener('keydown',firstTa
 /* ---------- boot ---------- */
 addEventListener('hashchange',()=>{if(location.hash==='#who'){history.replaceState(null,'',location.pathname);goWho()}});
 if(location.hash==='#who'){history.replaceState(null,'',location.pathname);goWho(false)}
+else if(location.hash==='#cert'&&store.activePlayer()&&CFG.GAMES.every(g=>CFG.isCompleted(store.activePlayer(),g.id))){history.replaceState(null,'',location.pathname);goCert()}
 else if(entered()&&store.activeId())goHub(false);
 else show('title');
 })();

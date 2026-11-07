@@ -58,12 +58,16 @@
           || en.find(v => /^en[-_]US/i.test(v.lang)) || en[0] || null;
     voiceM = pref(en, /\bguy\b|davis|daniel|alex|fred|david|mark|aaron|arthur|rishi|\bmale\b/i) || voiceF;
     if (!voicesLoaded) { voicesLoaded = true; readyCbs.splice(0).forEach(f => { try { f(); } catch (e) {} }); }
+    markVoice();
   }
+  /* html[data-voice] = "ok" once a voice exists, else "none". Captions can only be
+     hidden when speech really works (see css/theme.css). */
+  function markVoice() { document.documentElement.dataset.voice = (synth && voiceF) ? 'ok' : 'none'; }
   if (synth) {
     pickVoices();
     if (synth.addEventListener) synth.addEventListener('voiceschanged', pickVoices); else synth.onvoiceschanged = pickVoices;
     // some browsers never fire voiceschanged — poll briefly
-    let tries = 0; const poll = setInterval(() => { pickVoices(); if (voicesLoaded || ++tries > 20) clearInterval(poll); }, 250);
+    let tries = 0; const poll = setInterval(() => { pickVoices(); if (voicesLoaded || ++tries > 20) { clearInterval(poll); markVoice(); } }, 250);
   }
 
   /* ---------- settings (live from CH.store when present) ---------- */

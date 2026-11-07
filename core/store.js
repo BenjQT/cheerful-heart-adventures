@@ -339,6 +339,13 @@
   };
   CH.store = store;
 
-  // apply the in-app reduced-motion setting as early as possible
-  if (state.settings.reducedMotion) document.documentElement.dataset.motion = 'reduce';
+  /* reflect device settings on <html> so CSS can react everywhere:
+     data-motion="reduce" (in-app reduced motion), data-captions="off" */
+  function applyDocAttrs() {
+    const de = document.documentElement, s = state.settings;
+    if (s.reducedMotion) de.dataset.motion = 'reduce'; else delete de.dataset.motion;
+    de.dataset.captions = s.captions === false ? 'off' : 'on';
+  }
+  applyDocAttrs();
+  listeners.push(t => { if (t === 'settings' || t === 'external') applyDocAttrs(); });
 })();

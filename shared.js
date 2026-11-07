@@ -193,6 +193,13 @@ KG.coinSVG=function(v){const c=v===1?['#d9dde6','#9aa1b0']:v===5?['#f2d16b','#b8
 
 /* ---------------- audio ---------------- */
 let actx=null,master,sfxGain,musGain,noiseBuf=null,gridStart=0,nextNote=0,step=0,song=null,musicOn=KG.prog.music;
+/* Grown-ups' Corner settings: sound (effects + voice) on/off and music volume 0..1 */
+const ST=()=>(window.CH&&CH.store)?CH.store.settings():null;
+let musicVol=.5,soundOn=true;
+function readAudioSettings(){const s=ST();if(!s)return;musicVol=s.music>0?s.music:musicVol;musicOn=s.music>0;soundOn=s.sound!==false}
+readAudioSettings();
+const musLevel=()=>musicOn?.32*musicVol:0;         // .5 volume = the original level
+const SFX=.55;
 const SONGS={
   meadow:{bpm:100,root:261.63,mel:[0,2,4,7,4,2,9,7,4,7,9,12,9,7,4,2],bass:[0,5,7,4]},
   island:{bpm:112,root:293.66,mel:[0,4,7,4,9,7,4,2,0,4,7,9,12,9,7,4],bass:[0,0,5,7]},
@@ -204,7 +211,7 @@ function beatLen(){return song?60/song.bpm:.6}
 KG.beatPhase=function(){const B=beatLen();const t=actx?actx.currentTime-gridStart:performance.now()/1000;return((t/B)%1+1)%1};
 KG.secToNext=function(div){if(!actx)return 0;const span=beatLen()/(div||1),now=actx.currentTime;const k=Math.ceil((now-gridStart+.03)/span);return Math.max(0,gridStart+k*span-now)};
 KG.ensureAudio=function(){
-  if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=.55;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musicOn?.16:0;musGain.connect(master);
+  if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=soundOn?SFX:0;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musLevel();musGain.connect(master);
     nextNote=actx.currentTime+.12;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;
     if(speechOK){try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}}catch(e){actx=null}}
   else if(actx.state==='suspended')actx.resume();
@@ -242,7 +249,7 @@ setInterval(function(){if(!actx||!song)return;const S=beatLen()/2;
     nextNote+=S;step++}},120);
 KG.musicOn=()=>musicOn;
 let ambGain=null;
-KG.startAmbient=function(){if(!actx||ambGain)return;ambGain=actx.createGain();ambGain.gain.value=musicOn?1:0;ambGain.connect(master);
+KG.startAmbient=function(){if(!actx||ambGain)return;ambGain=actx.createGain();ambGain.gain.value=musicOn?Math.min(1,musicVol*2):0;ambGain.connect(master);
   const len=actx.sampleRate*3,b=actx.createBuffer(1,len,actx.sampleRate),d=b.getChannelData(0);let last=0;for(let i=0;i<len;i++){last=(last+.02*(Math.random()*2-1))/1.02;d[i]=last*3.5}
   const src=actx.createBufferSource();src.buffer=b;src.loop=true;const lp=actx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=600;const wg=actx.createGain();wg.gain.value=.06;
   const lfo=actx.createOscillator();lfo.frequency.value=.11;const lg=actx.createGain();lg.gain.value=.04;lfo.connect(lg);lg.connect(wg.gain);src.connect(lp);lp.connect(wg);wg.connect(ambGain);src.start();lfo.start();
@@ -252,14 +259,18 @@ KG.startAmbient=function(){if(!actx||ambGain)return;ambGain=actx.createGain();am
   setTimeout(chirp,900);
   const chime=()=>{const w=KG.secToNext(1);[1046.5,1318.5,1568].forEach((f,k)=>tone(f,1.4,{g:.025,when:w+k*beatLen()/2,dest:ambGain,attack:.02}));setTimeout(chime,9000+Math.random()*7000)};
   setTimeout(chime,5000)};
-KG.setMusic=function(on){musicOn=on;KG.prog.music=on;KG.save();if(musGain)musGain.gain.setTargetAtTime(on?.16:0,actx.currentTime,.2);if(ambGain)ambGain.gain.setTargetAtTime(on?1:0,actx.currentTime,.3);document.querySelectorAll('[data-music]').forEach(b=>b.classList.toggle('off',!on))};
+/* apply settings now (called when Grown-ups' Corner changes them, also from another tab) */
+KG.applyAudioSettings=function(){readAudioSettings();if(actx){musGain.gain.setTargetAtTime(musLevel(),actx.currentTime,.2);sfxGain.gain.setTargetAtTime(soundOn?SFX:0,actx.currentTime,.05);if(ambGain)ambGain.gain.setTargetAtTime(musicOn?Math.min(1,musicVol*2):0,actx.currentTime,.3)}document.querySelectorAll('[data-music]').forEach(b=>{b.classList.toggle('off',!musicOn);b.classList.toggle('is-off',!musicOn);b.setAttribute('aria-pressed',String(musicOn))})};
+if(window.CH&&CH.store)CH.store.onChange(t=>{if(t==='settings'||t==='external')KG.applyAudioSettings()});
+/* the music button toggles between off and the last volume */
+KG.setMusic=function(on){if(window.CH&&CH.store){CH.store.setSettings({music:on?(musicVol||.5):0});return}musicOn=on;KG.prog.music=on;KG.save();if(musGain)musGain.gain.setTargetAtTime(on?.16:0,actx.currentTime,.2);if(ambGain)ambGain.gain.setTargetAtTime(on?1:0,actx.currentTime,.3);document.querySelectorAll('[data-music]').forEach(b=>b.classList.toggle('off',!on))};
 
 /* ---------------- speech ---------------- */
 const speechOK='speechSynthesis' in window;let voice=null,voiceM=null;
 function pickVoice(){if(!speechOK)return;const vs=speechSynthesis.getVoices();voice=vs.find(v=>/^en[-_]/i.test(v.lang)&&/samantha|aria|jenny|zira|google us english|female|karen|moira/i.test(v.name))||vs.find(v=>/^en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;voiceM=vs.find(v=>/^en/i.test(v.lang)&&/(\bmale\b|daniel|alex|fred|david|mark|guy|aaron|arthur|rishi)/i.test(v.name))||voice;voice=vs.find(v=>/^en/i.test(v.lang)&&/princess|ivy|child|kid/i.test(v.name))||voice;voiceM=vs.find(v=>/^en/i.test(v.lang)&&/junior|justin|boy/i.test(v.name))||voiceM;}
 if(speechOK){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 let duckTimer=0,speakTimer=0;const SPEECH_LAG=.09;
-function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?.075:.16,actx.currentTime,.12)}
+function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?musLevel()*.45:musLevel(),actx.currentTime,.12)}
 /* All speech goes through CH.voice (core/voice.js): one voice picker, one pronunciation dictionary. */
 if(window.CH&&CH.voice){CH.voice.on('start',()=>duck(true));CH.voice.on('end',()=>duck(false))}
 KG.say=function(text,who,opt){opt=opt||{};who=who||'wynea';const plain=text.replace(/<[^>]+>/g,'');
@@ -501,6 +512,8 @@ KG.game=function(def){
     win.querySelector('[data-map]').addEventListener('click',()=>{try{sessionStorage.setItem('ch-in','1')}catch(e){}});
     setTimeout(()=>again.focus(),400);
     KG.say(say,host,{queue:false});
+    /* calm moment: offer the stretch break (after ~20 min of play) once the cheering is over */
+    setTimeout(()=>{if(!win.hidden&&window.CH&&CH.breakTime)CH.breakTime.check()},7000);
   }
 
   function renderDots(cur,justGot){dots.innerHTML='';dots.setAttribute('aria-valuemax',api.rounds);dots.setAttribute('aria-valuenow',Math.min(cur,api.rounds));dots.setAttribute('aria-valuetext',`Question ${Math.min(cur+1,api.rounds)} of ${api.rounds}`);

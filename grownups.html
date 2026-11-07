@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Grown-ups’ Corner · Cheerful Heart Adventures</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#6ab8ff">
+<link rel="stylesheet" href="css/theme.css">
+<style>
+html,body{height:auto!important;min-height:var(--vh);overflow-x:hidden!important;overflow-y:auto!important}
+body{margin:0;background:var(--sky-bg,#7cc4ff);overscroll-behavior-y:none}
+.gc{grid-template-columns:minmax(0,1fr);width:min(1040px,100%);margin:0 auto;padding:calc(var(--safe-t) + 12px) var(--gutter-r) calc(var(--safe-b) + 40px) var(--gutter-l);display:grid;gap:clamp(14px,2.5vw,22px)}
+.gc-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.gc-bar h1{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,5.5vw,2.3rem);color:#fff;text-shadow:0 3px 0 rgba(42,31,61,.45);flex:1;min-width:12ch}
+.gc-nav{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:3;padding:8px 0;background:linear-gradient(var(--sky-bg,#7cc4ff) 80%,rgba(124,196,255,0))}
+.gc-nav a{flex:none;font-weight:700;font-size:var(--fs-sm);color:var(--sky-d);background:#fff;border-radius:999px;padding:.45em 1em;text-decoration:none;min-height:40px;display:inline-flex;align-items:center;box-shadow:0 2px 0 rgba(42,31,61,.12)}
+.gc-nav a:focus-visible{outline:4px solid var(--focus);outline-offset:2px}
+.card{background:var(--paper);border-radius:var(--r-lg,22px);padding:clamp(14px,3vw,24px);box-shadow:0 6px 0 rgba(42,31,61,.12);scroll-margin-top:64px}
+.card>h2{margin:0 0 12px;font-family:var(--display);font-weight:400;font-size:clamp(1.3rem,4vw,1.65rem)}
+.card>h2 small{font-family:var(--body);font-weight:600;font-size:var(--fs-sm);color:var(--ink-soft);margin-left:6px}
+.muted{color:var(--ink-soft);font-size:var(--fs-sm)}
+p{margin:.3em 0}
+
+/* player chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:8px;border:3px solid transparent;background:#fff;border-radius:999px;padding:4px 14px 4px 4px;font:700 var(--fs-md) var(--body);color:var(--ink);cursor:pointer;min-height:var(--tap);box-shadow:0 3px 0 rgba(42,31,61,.14)}
+.chip .pic{width:40px;height:40px;display:block}
+.chip .pic svg{width:100%;height:100%}
+.chip[aria-pressed="true"]{border-color:var(--sky);background:#e6f0ff}
+.chip:focus-visible{outline:4px solid var(--focus);outline-offset:2px}
+
+/* summary tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:6px}
+.tile{background:#fff;border-radius:16px;padding:10px 14px;box-shadow:inset 0 0 0 2px #f1e6cf}
+.tile b{display:block;font-family:var(--display);font-weight:400;font-size:1.7rem;line-height:1.1}
+.tile span{font-size:var(--fs-sm);color:var(--ink-soft);font-weight:600}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
+table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid rgba(42,31,61,.12);vertical-align:middle}
+th{font-weight:700;color:var(--ink-soft);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.stop{display:flex;align-items:center;gap:8px;font-weight:700}
+.stop .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--sky);color:#fff;display:grid;place-items:center;font-size:.8rem}
+.stop small{display:block;font-weight:500;color:var(--ink-soft)}
+.stars{white-space:nowrap;color:var(--gold-d);letter-spacing:1px;font-size:1.05rem}
+.stars .off{color:rgba(42,31,61,.18)}
+.mast{display:grid;gap:4px;min-width:150px}
+.mbar{height:10px;border-radius:5px;background:rgba(42,31,61,.1);overflow:hidden}
+.mbar i{display:block;height:100%;width:var(--w);border-radius:5px;background:var(--c)}
+.tag{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:var(--fs-xs);border-radius:999px;padding:.15em .7em;white-space:nowrap;width:max-content}
+.tag.need{background:#ffe0ea;color:var(--heart-d)}
+.tag.prac{background:#fff1c7;color:#7a4b00}
+.tag.mast{background:#dff3d8;color:var(--leaf-d)}
+.tag.none{background:rgba(42,31,61,.07);color:var(--ink-soft)}
+tr.is-need td{background:#fff6f9}
+tr.is-mast td{background:#f6fcf3}
+.hist td{white-space:nowrap}
+.more{margin-top:10px}
+
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* players */
+.plist{display:grid;gap:10px}
+.prow{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:#fff;border-radius:16px;padding:8px 12px;box-shadow:inset 0 0 0 2px #f1e6cf}
+.prow .pic{width:52px;height:52px}
+.prow .pic svg{width:100%;height:100%}
+.prow .nm{font-weight:700;font-size:var(--fs-md)}
+.prow .btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.prow .ch-btn{font-family:var(--body);font-size:var(--fs-sm);min-height:44px;padding:.2em .9em}
+@media (max-width:560px){.prow{grid-template-columns:auto 1fr}.prow .btns{grid-column:1/-1;justify-content:flex-start}}
+
+/* settings */
+.set{display:grid;gap:4px}
+.srow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(42,31,61,.1)}
+.srow:last-child{border-bottom:0}
+.srow label,.srow .lbl{font-weight:700}
+.srow .muted{display:block;font-weight:500}
+.srow.wide{grid-template-columns:1fr}
+.switch{appearance:none;-webkit-appearance:none;width:64px;height:36px;border-radius:18px;background:#cfc4b4;position:relative;cursor:pointer;transition:background .2s;margin:0;flex:none}
+.switch::after{content:"";position:absolute;top:4px;left:4px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 3px rgba(0,0,0,.25);transition:transform .2s}
+.switch:checked{background:var(--leaf)}
+.switch:checked::after{transform:translateX(28px)}
+.switch:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+.range{display:flex;align-items:center;gap:10px}
+.range input{flex:1;min-width:0;accent-color:var(--sky);height:36px}
+.range output{min-width:4.5ch;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:10px}
+.games div{background:#fff;border-radius:12px;padding:8px 12px;font-size:var(--fs-sm)}
+.games b{display:block}
+.locked{color:#fff;display:grid;place-items:center;min-height:60vh;text-align:center;gap:12px}
+.print-head{display:none}
+
+@media print{
+  @page{margin:12mm}
+  body{background:#fff}
+  .gc{padding:0;width:100%}
+  body.printing-report .gc>*:not(#progress){display:none!important}
+  body.printing-report #progress{box-shadow:none;padding:0}
+  body.printing-report .print-head{display:block;margin-bottom:10px}
+  body.printing-report #progress .chips,body.printing-report #progress .noprint{display:none!important}
+  .tbl-wrap{overflow:visible}
+  tr{break-inside:avoid}
+}
+</style>
+</head>
+<body class="ch-app">
+<main class="gc" id="gc" hidden>
+  <div class="gc-bar">
+    <span id="back-slot"></span>
+    <h1>Grown-ups’ Corner</h1>
+  </div>
+  <div id="notices" class="ch-stack" style="gap:8px"></div>
+  <nav class="gc-nav" aria-label="Sections">
+    <a href="#progress">Progress</a><a href="#history">History</a><a href="#export">Export</a><a href="#players">Players</a><a href="#settings">Settings</a><a href="#about">About</a>
+  </nav>
+
+  <section class="card" id="progress" aria-labelledby="h-progress">
+    <div class="print-head" id="print-head"></div>
+    <h2 id="h-progress">Scorebook</h2>
+    <div class="chips" id="chips" role="group" aria-label="Choose a player"></div>
+    <div id="report"></div>
+  </section>
+
+  <section class="card" id="history" aria-labelledby="h-history">
+    <h2 id="h-history">Play history <small id="hist-who"></small></h2>
+    <div id="hist"></div>
+  </section>
+
+  <section class="card" id="export" aria-labelledby="h-export">
+    <h2 id="h-export">Export &amp; certificate</h2>
+    <p class="muted">Files are made on this device and saved only where you choose. Nothing is uploaded.</p>
+    <div class="actions" id="export-btns"></div>
+    <div id="cert-box" style="margin-top:12px"></div>
+  </section>
+
+  <section class="card" id="players" aria-labelledby="h-players">
+    <h2 id="h-players">Players <small id="pcount"></small></h2>
+    <div class="plist" id="plist"></div>
+    <div class="actions" style="margin-top:12px" id="padd"></div>
+  </section>
+
+  <section class="card" id="settings" aria-labelledby="h-settings">
+    <h2 id="h-settings">Settings <small>for everyone on this device</small></h2>
+    <div class="set" id="set"></div>
+  </section>
+
+  <section class="card" id="about" aria-labelledby="h-about">
+    <h2 id="h-about">About the games</h2>
+    <p class="grown"><b>For grown-ups:</b> Each game takes about 3 to 5 minutes and practices one skill: counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense. The last game, the Friendship Race, reviews them all. The first three stops are open; finishing a stop opens the next one. Turn the sound on so the friends can read every instruction aloud. Each player’s stars are saved on this device.</p>
+    <p><b>Stars:</b> ★★★ for 90% or more right on the first or second try, ★★ for 70% or more, and ★ for finishing. A hint appears after two tries, so children are never stuck. <b>Mastery</b> uses the last three finished plays of a stop: below 70% shows <span class="tag need">Needs practice</span>, 90% and up shows <span class="tag mast">Mastered</span>.</p>
+    <div class="games" id="games"></div>
+    <p style="margin-top:14px"><b>Privacy:</b> Data stays on this device. No accounts, no ads, no tracking. We only keep a first name or nickname, a picture choice, an optional age and the game results. Clearing this browser’s site data removes everything.</p>
+  </section>
+</main>
+
+<div class="locked" id="locked" hidden>
+  <div class="ch-stack" style="justify-items:center">
+    <p style="font-weight:700;font-size:var(--fs-lg)">This part is for grown-ups.</p>
+    <div class="actions" id="locked-btns" style="justify-content:center"></div>
+  </div>
+</div>
+
+<script src="core/config.js"></script><script src="core/store.js"></script>
+<script src="core/voice.js"></script>
+<script src="core/ui.js"></script>
+<script src="core/avatars.js"></script>
+<script src="core/profile-form.js"></script>
+<script src="shared.js"></script>
+<script>
+(function(){
+'use strict';
+const {ui,h,store,voice,esc}=CH,CFG=CH.config;
+const GATE='ch-gate',GATE_MS=15*60e3;
+const $=s=>document.querySelector(s);
+const gateOk=()=>{try{const t=+sessionStorage.getItem(GATE);return t>0&&Date.now()-t<GATE_MS}catch(e){return false}};
+const setGate=()=>{try{sessionStorage.setItem(GATE,String(Date.now()))}catch(e){}};
+const toMap=()=>{try{sessionStorage.setItem('ch-in','1');sessionStorage.removeItem(GATE)}catch(e){}location.href='index.html'};
+
+/* ---------- helpers ---------- */
+const fmtDate=iso=>{const d=new Date(iso);return isNaN(d)?'—':d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()!==new Date().getFullYear()?'numeric':undefined})};
+const fmtTime=iso=>{const d=new Date(iso);return isNaN(d)?'':d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
+const fmtDur=sec=>{sec=Math.round(sec||0);return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')};
+const starsTxt=n=>`<span class="stars" aria-label="${n} of 3 stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(3-n)}</span></span>`;
+const pct=x=>Math.round(x*100)+'%';
+function mastery(sessions,gid){
+  const done=sessions.filter(s=>s.gameId===gid&&s.completed&&s.total>0).slice(-3);
+  const tried=sessions.some(s=>s.gameId===gid);
+  if(!done.length)return{level:tried?'started':'none',acc:null,hints:null,n:0};
+  const acc=done.reduce((a,s)=>a+Math.min(1,s.correct/s.total),0)/done.length;
+  const hints=done.reduce((a,s)=>a+(s.hintsUsed||0),0)/done.length;
+  return{level:acc>=CFG.STARS.three?'mast':acc>=CFG.STARS.two?'prac':'need',acc,hints,n:done.length};
+}
+const TAG={mast:['mast','✓ Mastered'],prac:['prac','Practicing'],need:['need','! Needs practice'],started:['none','Started'],none:['none','Not started']};
+const COLOR={mast:'var(--leaf)',prac:'var(--gold-d)',need:'var(--heart)'};
+
+let sel=null,histShown=50;
+
+/* ---------- notices ---------- */
+function notices(){
+  const n=$('#notices');n.innerHTML='';
+  const add=t=>n.appendChild(h('div',{class:'ch-notice',role:'status',text:t}));
+  if(!store.available)add('This browser is not saving progress (private browsing or storage is blocked). Children can still play, but nothing will be kept after closing.');
+  if(store.loadIssue==='corrupt')add('The saved progress on this device could not be read, so the game started fresh. A backup copy was kept in this browser.');
+  if(store.loadIssue==='newer')add('This progress was saved by a newer version of the game. A backup copy was kept; please update the game on this device.');
+}
+
+/* ---------- player chips + report ---------- */
+function players(){return store.players()}
+function pickSel(){const ps=players();if(!ps.find(p=>p.id===sel))sel=(store.activeId()&&ps.find(p=>p.id===store.activeId()))?store.activeId():(ps[0]&&ps[0].id)||null}
+function renderChips(){
+  const c=$('#chips');c.innerHTML='';
+  players().forEach(p=>{const b=h('button',{type:'button',class:'chip','aria-pressed':String(p.id===sel),html:`<span class="pic">${CH.avatarSVG(p.avatar)}</span>${esc(p.name)}`});
+    b.onclick=()=>{sel=p.id;histShown=50;renderAll()};c.appendChild(b)});
+}
+function renderReport(){
+  const r=$('#report');r.innerHTML='';const p=sel&&store.getPlayer(sel);
+  if(!p){r.appendChild(h('p',{class:'muted',text:'No players yet. Add one in Players below.'}));return}
+  const ss=store.sessions(p.id);
+  const totalStars=CFG.GAMES.reduce((a,g)=>a+((p.games[g.id]||{}).bestStars||0),0);
+  const done=CFG.GAMES.filter(g=>CFG.isCompleted(p,g.id)).length;
+  const mins=Math.round(ss.reduce((a,s)=>a+(s.durationSec||0),0)/60);
+  const last=ss.length?ss[ss.length-1].startedAt:null;
+  $('#print-head').innerHTML=`<h1 style="margin:0;font-family:var(--display);font-weight:400">Cheerful Heart Adventures — ${esc(p.name)}</h1><p class="muted">Progress report · ${esc(new Date().toLocaleDateString())}</p>`;
+  r.appendChild(h('div',{class:'tiles',style:{marginTop:'12px'},html:
+    `<div class="tile"><b>${totalStars}<span style="font-size:1rem"> / 36</span></b><span>stars</span></div>`+
+    `<div class="tile"><b>${done}<span style="font-size:1rem"> / 12</span></b><span>stops finished · stickers</span></div>`+
+    `<div class="tile"><b>${mins}</b><span>minutes played</span></div>`+
+    `<div class="tile"><b>${ss.length}</b><span>plays</span></div>`+
+    `<div class="tile"><b style="font-size:1.25rem;line-height:1.6">${last?esc(fmtDate(last)):'—'}</b><span>last played</span></div>`}));
+  const rows=CFG.GAMES.map(g=>{
+    const st=p.games[g.id]||{},m=mastery(ss,g.id),[cls,label]=TAG[m.level];
+    const lastS=ss.filter(s=>s.gameId===g.id).pop();
+    const bar=m.acc==null?'':`<div class="mbar" role="img" aria-label="Accuracy ${pct(m.acc)}"><i style="--w:${pct(m.acc)};--c:${COLOR[m.level]}"></i></div>`;
+    return `<tr class="${m.level==='need'?'is-need':m.level==='mast'?'is-mast':''}">
+      <td><div class="stop"><span class="n" style="background:${CH.HEROES[g.host].ring}">${g.n}</span><span>${esc(g.title)}<small>${esc(g.skill)}</small></span></div></td>
+      <td>${st.completed?starsTxt(st.bestStars||0):'<span class="muted">—</span>'}</td>
+      <td class="num">${st.plays||0}</td>
+      <td><div class="mast"><span class="tag ${cls}">${label}${m.acc!=null?' · '+pct(m.acc):''}</span>${bar}</div></td>
+      <td class="num">${m.hints==null?'—':m.hints.toFixed(1)}</td>
+      <td>${lastS?esc(fmtDate(lastS.startedAt)):'—'}</td></tr>`}).join('');
+  r.appendChild(h('div',{class:'tbl-wrap',html:`<table><caption class="ch-sr">Scorebook for ${esc(p.name)}</caption><thead><tr><th>Stop</th><th>Best</th><th class="num">Plays</th><th>Mastery (last 3)</th><th class="num">Hints / play</th><th>Last played</th></tr></thead><tbody>${rows}</tbody></table>`}));
+  const need=CFG.GAMES.filter(g=>mastery(ss,g.id).level==='need');
+  if(need.length)r.appendChild(h('p',{style:{marginTop:'10px'},html:`<b>Try next:</b> ${need.map(g=>esc(g.title)+' ('+esc(g.skill.toLowerCase())+')').join(', ')}. Playing a stop again is the best practice.`}));
+}
+function renderHistory(){
+  const box=$('#hist');box.innerHTML='';const p=sel&&store.getPlayer(sel);
+  $('#hist-who').textContent=p?'· '+p.name:'';
+  if(!p)return;
+  const ss=store.sessions(p.id).slice().reverse();
+  if(!ss.length){box.appendChild(h('p',{class:'muted',text:'No plays yet.'}));return}
+  const rows=ss.slice(0,histShown).map(s=>{const g=CFG.game(s.gameId)||{title:s.gameId};
+    const res=s.completed?starsTxt(s.stars||0):'<span class="tag none">Stopped early</span>';
+    const score=s.completed?`${s.correct}/${s.total}`:`${s.correct}/${s.answered||0} of ${s.total||'?'}`;
+    return `<tr><td>${esc(fmtDate(s.startedAt))} <span class="muted">${esc(fmtTime(s.startedAt))}</span></td><td>${esc(g.title)}${s.level?' <span class="muted">· '+esc(s.level)+'</span>':''}</td><td>${res}</td><td class="num">${score}</td><td class="num">${s.hintsUsed||0}</td><td class="num">${fmtDur(s.durationSec)}</td></tr>`}).join('');
+  box.appendChild(h('div',{class:'tbl-wrap',html:`<table class="hist"><caption class="ch-sr">Play history, newest first</caption><thead><tr><th>When</th><th>Stop</th><th>Result</th><th class="num">First-try right</th><th class="num">Hints</th><th class="num">Time</th></tr></thead><tbody>${rows}</tbody></table>`}));
+  if(ss.length>histShown)box.appendChild(h('div',{class:'more'},ui.bigButton({label:`Show more (${ss.length-histShown})`,variant:'paper',onClick:()=>{histShown+=50;renderHistory()}})));
+  box.appendChild(h('p',{class:'muted',style:{marginTop:'8px'},text:`Up to ${store.MAX_SESSIONS} plays are kept per player.`}));
+}
+
+/* ---------- export ---------- */
+function csvCell(v){v=v==null?'':String(v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function download(name,blob){const url=URL.createObjectURL(blob);const a=h('a',{href:url,download:name});document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},4000)}
+function exportCSV(){
+  const head=['Player','Date','Time','Stop','Skill','Finished','Stars','First-try right','Answered','Questions','Hints','Minutes'];
+  const lines=[head];
+  players().forEach(p=>store.sessions(p.id).forEach(s=>{const g=CFG.game(s.gameId)||{title:s.gameId,skill:''};const d=new Date(s.startedAt);
+    lines.push([p.name,isNaN(d)?'':d.toISOString().slice(0,10),fmtTime(s.startedAt),g.title,g.skill,s.completed?'yes':'stopped early',s.completed?s.stars:'',s.correct,s.answered!=null?s.answered:(s.completed?s.total:''),s.total,s.hintsUsed||0,((s.durationSec||0)/60).toFixed(1)])}));
+  const csv='﻿'+lines.map(r=>r.map(csvCell).join(',')).join('\r\n');
+  download('cheerful-heart-scores-'+new Date().toISOString().slice(0,10)+'.csv',new Blob([csv],{type:'text/csv;charset=utf-8'}));
+}
+function printReport(){document.body.classList.add('printing-report');const done=()=>{document.body.classList.remove('printing-report');removeEventListener('afterprint',done)};addEventListener('afterprint',done);setTimeout(()=>{window.print();setTimeout(done,1500)},60)}
+function renderExport(){
+  const b=$('#export-btns');b.innerHTML='';const p=sel&&store.getPlayer(sel);
+  b.append(ui.bigButton({label:'Download scores (CSV)',variant:'sky',onClick:exportCSV}),
+    ui.bigButton({label:p?`Print ${p.name}’s report`:'Print report',variant:'paper',icon:'book',onClick:printReport}));
+  if(!players().length)[...b.children].forEach(x=>x.disabled=true);
+  const c=$('#cert-box');c.innerHTML='';if(!p)return;
+  const left=CFG.GAMES.filter(g=>!CFG.isCompleted(p,g.id)).length;
+  if(!left)c.append(h('p',{html:`<b>${esc(p.name)}</b> finished all 12 stops and earned the <b>Ready for Grade 1</b> certificate.`}),
+    ui.bigButton({label:'Open certificate',variant:'gold',icon:'star',onClick:()=>{store.setActive(p.id);try{sessionStorage.setItem('ch-in','1')}catch(e){}location.href='index.html#cert'}}));
+  else c.append(h('p',{class:'muted',text:`Certificate: ${p.name} has ${left} stop${left===1?'':'s'} to go.`}));
+}
+
+/* ---------- players ---------- */
+function confirmBox(title,text,okLabel,onOk){
+  ui.modal({title,body:h('p',{style:{margin:0},text}),initialFocus:'.ch-modal__actions .ch-btn',actions:[{label:'Cancel',variant:'paper'},{label:okLabel,variant:'heart',onClick:onOk}]});
+}
+function renderPlayers(){
+  const l=$('#plist');l.innerHTML='';const ps=players();
+  $('#pcount').textContent=`${ps.length} of ${store.MAX_PLAYERS}`;
+  if(!ps.length)l.appendChild(h('p',{class:'muted',text:'No players yet.'}));
+  ps.forEach(p=>{
+    const stars=CFG.GAMES.reduce((a,g)=>a+((p.games[g.id]||{}).bestStars||0),0);
+    const btns=h('div',{class:'btns'},[
+      ui.bigButton({label:'Edit',variant:'paper',ariaLabel:'Edit '+p.name,onClick:()=>CH.profileForm({player:p,onSaved:()=>renderAll()})}),
+      ui.bigButton({label:'Reset',variant:'paper',ariaLabel:'Reset progress for '+p.name,onClick:()=>confirmBox(`Start over for ${p.name}?`,`This clears ${p.name}’s stars, stickers and play history on this device. The name and picture stay. This can’t be undone.`,'Yes, start over',()=>{store.resetPlayer(p.id);renderAll()})}),
+      ui.bigButton({label:'Delete',variant:'heart',ariaLabel:'Delete '+p.name,onClick:()=>confirmBox(`Delete ${p.name}?`,`This removes ${p.name} and all of their progress from this device. This can’t be undone.`,'Delete '+p.name,()=>{store.deletePlayer(p.id);renderAll()})})]);
+    l.appendChild(h('div',{class:'prow'},[h('span',{class:'pic',html:CH.avatarSVG(p.avatar)}),
+      h('div',{},[h('div',{class:'nm',text:p.name+(p.id===store.activeId()?' (playing now)':'')}),h('div',{class:'muted',text:`${p.age?'Age '+p.age+' · ':''}${stars} stars · ${(p.stickers||[]).length} sticker${(p.stickers||[]).length===1?'':'s'}${p.sayAs?' · said as “'+p.sayAs+'”':''}`})]),btns]));
+  });
+  const a=$('#padd');a.innerHTML='';
+  const add=ui.bigButton({label:'Add a player',variant:'leaf',icon:'plus',onClick:()=>CH.profileForm({onSaved:np=>{sel=np.id;renderAll()}})});
+  if(!store.canAddPlayer()){add.disabled=true;a.append(add,h('span',{class:'muted',text:`This device has the most players (${store.MAX_PLAYERS}).`}))}else a.append(add);
+}
+
+/* ---------- settings ---------- */
+function renderSettings(){
+  const box=$('#set');box.innerHTML='';const s=store.settings();
+  const sw=(key,label,help)=>{const id='s-'+key;const i=h('input',{type:'checkbox',class:'switch',role:'switch',id,'aria-describedby':help?id+'-h':null});i.checked=!!s[key];
+    i.onchange=()=>store.setSettings({[key]:i.checked});
+    return h('div',{class:'srow'},[h('div',{},[h('label',{for:id,text:label}),help?h('span',{class:'muted',id:id+'-h',text:help}):null]),i])};
+  const range=(key,label,help,min,max,step,fmt,onIn)=>{const id='s-'+key;const i=h('input',{type:'range',id,min,max,step,'aria-describedby':id+'-h'});i.value=s[key];
+    const out=h('output',{for:id,text:fmt(+i.value)});
+    i.oninput=()=>{out.textContent=fmt(+i.value)};i.onchange=()=>{store.setSettings({[key]:+i.value});onIn&&onIn(+i.value)};
+    return h('div',{class:'srow wide'},[h('div',{},[h('label',{for:id,text:label}),h('span',{class:'muted',id:id+'-h',text:help})]),h('div',{class:'range'},[i,out])])};
+  const say=()=>{try{voice.unlock()}catch(e){}voice.speak('Hi! I’m Wynea. Let’s count together: one, two, three!',{who:'wynea'})};
+  const seg=h('div',{class:'ch-seg',role:'group','aria-label':'Unlocking'});
+  [['gentle','One stop at a time'],['all','All stops open']].forEach(([v,l])=>{const b=ui.bigButton({label:l,variant:'paper',onClick:()=>{store.setSettings({unlockMode:v});renderSettings()}});b.setAttribute('aria-pressed',String(s.unlockMode===v));seg.appendChild(b)});
+  box.append(
+    sw('sound','Sound and voice','Sound effects and the friends’ voices. Children who can’t read yet need this on.'),
+    range('music','Music volume','Background music. All the way left turns it off.',0,1,.05,v=>v<=0?'Off':Math.round(v*100)+'%'),
+    h('div',{class:'srow wide'},[range('voiceRate','Voice speed','How fast the friends talk.',.6,1.3,.05,v=>v.toFixed(2)+'×',say),h('div',{},ui.bigButton({label:'Hear the voice',variant:'sky',icon:'speak',onClick:say}))]),
+    sw('captions','Show words in speech bubbles','Turn off to let children listen only. Words always show if this device has no voice.'),
+    sw('reducedMotion','Less motion','Calmer screens: fewer bounces, sparkles and confetti.'),
+    h('div',{class:'srow wide'},[h('div',{},[h('span',{class:'lbl',text:'Unlocking'}),h('span',{class:'muted',text:'Gentle mode opens the first three stops, then one more each time a stop is finished.'})]),seg]),
+    sw('breakReminder','Stretch-break reminder','After about 20 minutes of play, a friend suggests a short stretch.'),
+    sw('bonusTimer','Bonus timer in the Friendship Race','An optional “speedy bonus” ring. It never takes stars away.')
+  );
+  box.append(h('div',{class:'srow wide'},h('p',{class:'muted',text:'Settings save right away and apply on every page of the game on this device.'})));
+}
+
+function renderAbout(){
+  $('#games').innerHTML=CFG.GAMES.map(g=>`<div><b>${g.n}. ${esc(g.title)}</b>${esc(g.skill)} · with ${esc(CH.HEROES[g.host].name)}</div>`).join('');
+}
+
+function renderAll(){pickSel();notices();renderChips();renderReport();renderHistory();renderExport();renderPlayers();renderSettings()}
+
+/* ---------- gate ---------- */
+function open(){setGate();$('#locked').hidden=true;$('#gc').hidden=false;
+  $('#back-slot').innerHTML='';$('#back-slot').appendChild(ui.bigButton({label:'Back to the map',variant:'paper',icon:'back',onClick:toMap}));
+  renderAbout();renderAll();
+  // keep the gate fresh while a grown-up is using the page
+  addEventListener('pointerdown',setGate,{passive:true});
+}
+function lock(){$('#gc').hidden=true;$('#locked').hidden=false;
+  const b=$('#locked-btns');b.innerHTML='';
+  b.append(ui.bigButton({label:'Back to the map',variant:'leaf',icon:'back',onClick:toMap}),ui.bigButton({label:'I’m a grown-up',variant:'paper',onClick:gate}));
+}
+function gate(){ui.parentGate({onPass:open,onCancel:()=>{}})}
+store.onChange(t=>{if(t==='external'&&!$('#gc').hidden)renderAll()});
+if(gateOk())open();else{lock();gate()}
+})();
+</script>
+</body>
+</html>

@@ -182,7 +182,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px;box-shadow:0 0 0 
 
 <script src="core/config.js"></script><script src="core/store.js"></script>
 <script src="core/voice.js"></script>
-<script src="core/ui.js"></script>
+<script src="core/ui.js"></script><script src="core/break.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
@@ -496,8 +496,14 @@ function tween(dur,fn,done){tweens.push({t:0,dur,fn,done})}
 let gridStart=0,noiseBuf=null;const STEP=.3,BEAT=.6,SPEECH_LAG=.09;
 function beatPhase(){const t=actx?actx.currentTime-gridStart:performance.now()/1000;return((t/BEAT)%1+1)%1}
 function secToNext(div){if(!actx)return 0;const span=BEAT/(div||1),now=actx.currentTime;const k=Math.ceil((now-gridStart+.03)/span);return Math.max(0,gridStart+k*span-now)}
-let actx=null,sfxGain,musGain,musicOn=prog.music,soundOn=true,nextNote=0,step=0;
-function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();const master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=.55;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musicOn?.16:0;musGain.connect(master);nextNote=actx.currentTime+.1;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;if(speechOK){try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}}catch(e){actx=null}}else if(actx.state==='suspended')actx.resume()}
+let actx=null,sfxGain,musGain,musicOn=prog.music,soundOn=true,nextNote=0,step=0,musicVol=.5;
+/* Grown-ups' Corner settings: sound (effects + voice) and music volume */
+function readAudioSettings(){if(!(window.CH&&CH.store))return;const s=CH.store.settings();if(s.music>0)musicVol=s.music;musicOn=s.music>0;soundOn=s.sound!==false}
+readAudioSettings();
+const musLevel=()=>musicOn?.32*musicVol:0;
+function applyAudioSettings(){readAudioSettings();if(actx){musGain.gain.setTargetAtTime(musLevel(),actx.currentTime,.2);sfxGain.gain.setTargetAtTime(soundOn?.55:0,actx.currentTime,.05)}const mb=document.getElementById('musicBtn');if(mb)mb.classList.toggle('off',!musicOn)}
+if(window.CH&&CH.store)CH.store.onChange(t=>{if(t==='settings'||t==='external')applyAudioSettings()});
+function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();const master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=soundOn?.55:0;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musLevel();musGain.connect(master);nextNote=actx.currentTime+.1;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;if(speechOK){try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}}catch(e){actx=null}}else if(actx.state==='suspended')actx.resume()}
 function tone(f,dur,o={}){if(!actx)return;const{type='sine',g=.25,when=0,dest=sfxGain,attack=.012,slide=0}=o;const t=actx.currentTime+when;const os=actx.createOscillator(),a=actx.createGain();os.type=type;os.frequency.setValueAtTime(f,t);if(slide)os.frequency.exponentialRampToValueAtTime(f*slide,t+dur);a.gain.setValueAtTime(.0001,t);a.gain.exponentialRampToValueAtTime(g,t+attack);a.gain.exponentialRampToValueAtTime(.0001,t+dur);os.connect(a);a.connect(dest);os.start(t);os.stop(t+dur+.05)}
 const PENTA=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5,1567.98,1760,2093];
 let nbuf=null;function nbf(){if(!nbuf&&actx){nbuf=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}return nbuf}
@@ -521,7 +527,7 @@ function musicTick(){if(!actx)return;while(nextNote<actx.currentTime+.4){const w
   if(step%4===0){const b=[0,5,7,4][(step/4|0)%4];tone(130.81*Math.pow(2,b/12),1.1,{type:'triangle',g:.12,dest:musGain,when:nextNote-actx.currentTime,attack:.05})}
   nextNote+=.3;step++}}
 setInterval(musicTick,120);
-function setMusic(on){musicOn=on;prog.music=on;saveProg();if(musGain)musGain.gain.setTargetAtTime(on?.16:0,actx.currentTime,.2);$('#musicBtn').classList.toggle('off',!on)}
+function setMusic(on){if(window.CH&&CH.store){CH.store.setSettings({music:on?(musicVol||.5):0});return}musicOn=on;prog.music=on;saveProg();if(musGain)musGain.gain.setTargetAtTime(on?.16:0,actx.currentTime,.2);$('#musicBtn').classList.toggle('off',!on)}
 
 /* ---------- speech ---------- */
 let voice=null,voiceM=null;const speechOK='speechSynthesis' in window;
@@ -529,7 +535,7 @@ function pickVoice(){if(!speechOK)return;const vs=speechSynthesis.getVoices();vo
 if(speechOK){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 let duckTimer=0,speakTimer=0;
 const VSTYLE={wynea:{p:1.78,r:1.1},ali:{p:1.9,r:1.06},matthew:{p:1.6,r:1.12}};
-function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?.075:.16,actx.currentTime,.12)}
+function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?musLevel()*.45:musLevel(),actx.currentTime,.12)}
 function say(text,queue,onstart,who){
   who=who||leaderId;if(!soundOn){onstart&&onstart();return}
   if(window.CH&&CH.voice){CH.voice.speak(text,{who,queue:!!queue,onstart});return}
@@ -661,6 +667,7 @@ function showWin(){
   const msg=(stars===3?(right===tot?'Perfect score! ':'')+(last?'Hooray! You finished every level! You are a counting superstar!':'Hooray! The star map is back together!'):stars===2?'Great counting! The star map is back together!':'You did it! You found every star!')
     +` You earned ${word}!`+(sticker?' And you got a new sticker!':'')+(pb?' That’s your personal best!':'');
   $('#win').hidden=false;setTimeout(()=>$('#nextBtn').focus(),300);say(msg,true,null,leaderId);
+  setTimeout(()=>{if(!$('#win').hidden&&window.CH&&CH.breakTime)CH.breakTime.check()},7000);
 }
 function goTitle(){
   saveEarly();
