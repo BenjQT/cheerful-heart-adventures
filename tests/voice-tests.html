@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voice Tests</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#fffdf6;color:#2a1f3d;margin:0 auto;padding:16px;max-width:900px}
+  table{width:100%;border-collapse:collapse;font-size:.95rem}td,th{padding:6px 8px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}
+  .pass{color:#1f5814;font-weight:700}.fail{color:#a3204f;font-weight:700}code{font-size:.85em;word-break:break-word}
+</style>
+<script>
+/* A silent stand-in for the browser's speech engine: it records every line
+   the game hands to text-to-speech, so we can check exactly what is spoken. */
+window.__spoken=[];
+(function(){
+  const fake={speaking:false,paused:false,
+    getVoices:()=>[],   // real voices can't be faked; the default voice is used
+    speak(u){window.__spoken.push(u.text);setTimeout(()=>{u.onstart&&u.onstart();u.onend&&u.onend()},0)},
+    cancel(){},resume(){},addEventListener(){},removeEventListener(){}};
+  Object.defineProperty(window,'speechSynthesis',{configurable:true,get:()=>fake});
+  window.CH_STORAGE_NS='chvoicetest:';
+})();
+</script>
+<script src="../core/config.js"></script>
+<script src="../core/store.js"></script>
+<script src="../core/voice.js"></script>
+<script src="../core/ui.js"></script>
+</head><body>
+<h1>Voice tests</h1>
+<p>Checks the words the game sends to text-to-speech. Uses a silent fake speech engine; nothing is spoken aloud and no player data is touched.</p>
+<div id="sum" role="status">Running…</div>
+<table><thead><tr><th>Result</th><th>Test</th><th>Details</th></tr></thead><tbody id="out"></tbody></table>
+<script>
+const V=CH.voice;V.unlock();
+const said=async(text,o)=>{window.__spoken=[];await V.speak(text,o||{who:'wynea'});return window.__spoken.filter(t=>t.trim()).join(' ')};
+const noRaw=t=>{if(!t)throw new Error('nothing reached the speech engine');if(/wynea/i.test(t))throw new Error('raw "Wynea" reached TTS: '+t)};
+const ok=(c,m)=>{if(!c)throw new Error(m)};
+const TESTS=[
+ ['Plain sentence',async()=>{const t=await said('Hi! I’m Wynea!');noRaw(t);ok(/Wee-neh-yah/.test(t),'not pronounced: '+t)}],
+ ['Possessive (Wynea’s / Wynea\'s)',async()=>{let t=await said('Wynea’s Clock Tower Quest');noRaw(t);t=await said("Wynea's turn");noRaw(t)}],
+ ['Any capitals (WYNEA, wynea)',async()=>{noRaw(await said('WYNEA! wynea? Wynea.'))}],
+ ['Inside HTML (<b>Wynea</b>)',async()=>{const t=await said('Hi, <b>Wynea</b>!');noRaw(t);ok(!/</.test(t),'tags spoken')}],
+ ['Child named Wynea (speakName)',async()=>{ok(V.speakName({name:'Wynea'})==='Wee-neh-yah');noRaw(await said('Hi, '+V.speakName({name:'Wynea'})+'!'))}],
+ ['Grown-up "say it as" spelling is used',async()=>{ok(V.speakName({name:'Mia',sayAs:'Mee-ah'})==='Mee-ah');const t=await said('Hi, '+V.speakName({name:'Mia',sayAs:'Mee-ah'}));ok(t.includes('Mee-ah'),'spoke: '+t)}],
+ ['Every map intro, title and place name',async()=>{for(const g of CH.config.GAMES){for(const s of [g.intro,g.title,g.place,g.skill])noRaw(await said(s,{who:g.host}))}}],
+ ['Character names from CH.HEROES',async()=>{for(const h of Object.values(CH.HEROES))noRaw(await said('I am '+h.name+', the '+h.role+'.',{who:h.id}))}],
+  ['Sound off: nothing is spoken',async()=>{const st=CH.store.settings();CH.store.setSettings({sound:false});const t=await said('Wynea says hi');CH.store.setSettings({sound:st.sound});ok(t==='','spoke: '+t)}],
+];
+(async()=>{let pass=0,fail=0;const out=document.getElementById('out');
+  for(const [name,fn] of TESTS){let err=null;try{await fn()}catch(e){err=e}
+    const tr=document.createElement('tr');tr.innerHTML=`<td class="${err?'fail':'pass'}">${err?'FAIL':'pass'}</td><td></td><td><code></code></td>`;tr.children[1].textContent=name;tr.querySelector('code').textContent=err?err.message:'';out.appendChild(tr);err?fail++:pass++}
+  Object.keys(localStorage).filter(k=>k.startsWith('chvoicetest:')).forEach(k=>localStorage.removeItem(k));
+  const s=document.getElementById('sum');s.textContent=`${pass} passed, ${fail} failed`;s.className=fail?'fail':'pass';window.__result={pass,fail};
+})();
+</script>
+</body></html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smoke Test</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#fffdf6;color:#2a1f3d;margin:0 auto;padding:16px;max-width:1000px}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}td,th{padding:6px 8px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}
+  .pass{color:#1f5814;font-weight:700}.fail{color:#a3204f;font-weight:700}code{font-size:.85em;word-break:break-word}
+  #stage{position:absolute;left:-10000px;top:0}#stage iframe{width:820px;height:640px;border:0}
+</style></head><body>
+<h1>Smoke test — every page</h1>
+<p>Opens each page in a hidden frame, starts it like a child would (tap Play), and checks: the shared code loaded,
+no script errors, the friends really speak, and <b>“Wynea” is never sent raw to text-to-speech</b>.
+The speech engine is muted during the test; it records the words instead.
+A temporary test player is used and removed afterwards.</p>
+<div id="sum" role="status">Running…</div>
+<table><thead><tr><th>Result</th><th>Page</th><th>Spoken lines</th><th>Details</th></tr></thead><tbody id="out"></tbody></table>
+<div id="stage"></div>
+<script>
+const PAGES=['index.html','grownups.html','star-map.html','shapes.html','patterns.html','treasure.html','cookies.html','bridge.html','sorting.html','clock.html','market.html','hide-seek.html','garden.html','race.html'];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let tempId=null,prevActive=null;
+function setup(){const S=CH.store;prevActive=S.activeId();const r=S.addPlayer({name:'Smoke Test',avatar:'owl'});if(r.ok){tempId=r.player.id;S.setActive(tempId)}
+  try{sessionStorage.setItem('ch-in','1');sessionStorage.setItem('ch-gate',String(Date.now()))}catch(e){}}
+function cleanup(){const S=CH.store;S.reload();if(tempId)S.deletePlayer(tempId);if(prevActive&&S.getPlayer(prevActive))S.setActive(prevActive)}
+async function run(page){
+  const f=document.createElement('iframe');f.src='../'+page;document.getElementById('stage').appendChild(f);
+  await new Promise(r=>{f.onload=r;setTimeout(r,8000)});
+  const w=f.contentWindow,issues=[],spoken=[];
+  w.addEventListener('error',e=>issues.push('error: '+e.message));
+  w.addEventListener('unhandledrejection',e=>issues.push('promise: '+(e.reason&&e.reason.message||e.reason)));
+  // record speech instead of playing it (the engine is shared, so this catches every path)
+  if(w.speechSynthesis){w.speechSynthesis.cancel();w.speechSynthesis.speak=u=>{spoken.push(u.text);setTimeout(()=>{u.onstart&&u.onstart();u.onend&&u.onend()},30)}}
+  const need=['config','store','voice','ui'];need.forEach(k=>{if(!w.CH||!w.CH[k])issues.push('missing CH.'+k)});
+  if(page!=='grownups.html'&&!(w.CH&&w.CH.breakTime))issues.push('missing break reminder');
+  if(!(w.CH&&w.CH.pwa))issues.push('missing pwa');
+  const d=w.document;d.dispatchEvent(new w.PointerEvent('pointerdown',{bubbles:true}));   // the "first tap"
+  await sleep(300);
+  // start like a child would
+  const click=sel=>{const b=d.querySelector(sel);if(b){b.click();return true}return false};
+  if(page==='index.html'){const stop=d.querySelector('#map button,#map a');stop&&stop.click()}
+  else if(page==='star-map.html'){click('#levels button')||click('.lvl')}
+  else if(page!=='grownups.html'){if(!click('#kg-play'))issues.push('no Play button')}
+  else{const v=[...d.querySelectorAll('button')].find(b=>/Hear the voice/.test(b.textContent));v&&v.click()}
+  await sleep(2600);
+  if(page!=='grownups.html'&&w.CH&&w.CH.store.setting('sound')!==false&&!spoken.filter(s=>s.trim()).length)issues.push('nothing was spoken');
+  const raw=spoken.filter(s=>/wynea/i.test(s));if(raw.length)issues.push('RAW "Wynea" sent to TTS: '+raw[0]);
+  if(d.documentElement.scrollWidth>w.innerWidth+1)issues.push('scrolls sideways');
+  try{w.CH&&w.CH.voice&&w.CH.voice.cancel()}catch(e){}
+  f.src='about:blank';await sleep(100);f.remove();
+  return{issues,spoken:spoken.filter(s=>s.trim())};
+}
+</script>
+<script src="../core/config.js"></script><script src="../core/store.js"></script>
+<script>
+(async()=>{setup();let pass=0,fail=0;const out=document.getElementById('out'),all={};
+  for(const p of PAGES){let r;try{r=await run(p)}catch(e){r={issues:['test error: '+e.message],spoken:[]}}all[p]=r;
+    const tr=document.createElement('tr');tr.innerHTML=`<td class="${r.issues.length?'fail':'pass'}">${r.issues.length?'FAIL':'pass'}</td><td><code></code></td><td></td><td></td>`;
+    tr.children[1].firstChild.textContent=p;tr.children[2].textContent=r.spoken.length+(r.spoken[0]?' — “'+r.spoken[0].slice(0,60)+'…”':'');tr.children[3].textContent=r.issues.join('; ');out.appendChild(tr);r.issues.length?fail++:pass++}
+  cleanup();const s=document.getElementById('sum');s.textContent=`${pass} passed, ${fail} failed`;s.className=fail?'fail':'pass';window.__result={pass,fail,all};
+})();
+</script>
+</body></html>
