@@ -429,7 +429,15 @@ KG.game=function(def){
     const tick=()=>{const left=Math.max(0,bonusEnd-Date.now());fg.style.strokeDashoffset=C*(1-left/(sec*1000));if(!left)bonusStop()};tick();bonusT=setInterval(tick,250)}
   function bonusStop(){clearInterval(bonusT);bonusLive=false;if(bonusEl)bonusEl.classList.add('done')}
 
-  let firstTry=0,credit=0,repeatLine=null,round=0,misses=0,roundMiss=0,locked=true,finished=false,introLine=null,startedAt=0,hints=0,glowBefore=null;
+  let firstTry=0,credit=0,repeatLine=null,round=0,misses=0,roundMiss=0,locked=true,finished=false,introLine=null,startedAt=0,hints=0,glowBefore=null,answered=0,savedEarly=false;
+  /* play time = time the game is on screen (a hidden tab doesn't count) */
+  let shownAt=0,activeMs=0;
+  const playSec=()=>Math.round((activeMs+(shownAt?Date.now()-shownAt:0))/1000);
+  document.addEventListener('visibilitychange',()=>{if(!startedAt||finished)return;if(document.hidden){if(shownAt){activeMs+=Date.now()-shownAt;shownAt=0}}else if(!shownAt)shownAt=Date.now()});
+  /* leaving mid-game (Back to map, closing the tab, reload) still records the session as "stopped early" */
+  function saveEarly(){if(finished||savedEarly||!startedAt||(answered===0&&misses===0))return;savedEarly=true;
+    if(hasCH&&CH.store.activeId())CH.store.recordSession(def.id,{startedAt:new Date(startedAt).toISOString(),durationSec:playSec(),correct:Math.min(firstTry,answered),total:api.rounds,answered,hintsUsed:hints,completed:false})}
+  addEventListener('pagehide',saveEarly);
   const api={stage,rounds:def.rounds||8,host,get round(){return round},get locked(){return locked},
     hero:k=>KG.ORDER[((k%3)+3)%3],
     talk(who,text){if(introLine){text=introLine+' '+text;introLine=null}bubble(who,text);KG.say(text,who);setTalk(who,text.split(' ').length*.36+.8)},
@@ -439,7 +447,7 @@ KG.game=function(def){
     /** point at the answer yourself (optional — glowing it works too) */
     hint(el){pointTo(el)},
     correct(o){o=o||{};if(locked&&!o.force)return false;locked=true;clearHand();
-      if(roundMiss===0)firstTry++;credit+=hasCH?CH.config.creditFor(roundMiss):(roundMiss?0:1);
+      answered++;if(roundMiss===0)firstTry++;credit+=hasCH?CH.config.creditFor(roundMiss):(roundMiss?0:1);
       KG.sfx.correct(round);if(o.el){KG.sparkle(o.el);o.el.classList.remove('pop');void o.el.offsetWidth;o.el.classList.add('pop')}
       let line=o.line||KG.praise(o.who||api.hero(round+1));
       if(bonusLive&&Date.now()<bonusEnd){speedy++;line+=' Speedy bonus!';KG.sfx.coin()}bonusStop();
@@ -459,7 +467,7 @@ KG.game=function(def){
       const stars=hasCH?CH.config.starsFor(cr,total):(right/total>=.9?3:right/total>=.7?2:1);
       KG.prog.won[def.id]=Math.max(KG.prog.won[def.id]||0,stars);KG.save();
       let res=null;
-      if(hasCH&&CH.store.activeId())res=CH.store.recordSession(def.id,{startedAt:new Date(startedAt||Date.now()).toISOString(),durationSec:Math.round((Date.now()-(startedAt||Date.now()))/1000),correct:right,total,hintsUsed:hints,stars});
+      if(hasCH&&CH.store.activeId())res=CH.store.recordSession(def.id,{startedAt:new Date(startedAt||Date.now()).toISOString(),durationSec:playSec(),correct:right,total,hintsUsed:hints,stars,completed:true});
       setTimeout(()=>showEnd(stars,right,total,res),900)},
     beats(n,fn,div){const B=beatLen()/(div||1);const d=KG.secToNext(div||1)*1000;for(let i=0;i<n;i++)setTimeout(()=>fn(i),d+i*B*1000);return d+n*B*1000},
     beatLen
@@ -502,7 +510,7 @@ KG.game=function(def){
   document.querySelector('[data-music]').onclick=()=>{KG.ensureAudio();KG.setMusic(!musicOn)};
   try{sessionStorage.setItem('ch-in','1')}catch(e){}
   const inst=def.build(stage,api);
-  $('#kg-play').onclick=()=>{KG.ensureAudio();if(window.CH&&CH.voice)CH.voice.unlock();startedAt=Date.now();hints=0;credit=0;firstTry=0;KG.sfx.pop();intro.hidden=true;round=0;misses=0;renderDots(0);introLine=def.intro?def.intro.text:null;locked=false;inst.round(0);if(introLine){const w=def.intro.who;api.talk(w,'');}};
+  $('#kg-play').onclick=()=>{KG.ensureAudio();if(window.CH&&CH.voice)CH.voice.unlock();startedAt=Date.now();shownAt=startedAt;activeMs=0;answered=0;savedEarly=false;hints=0;credit=0;firstTry=0;KG.sfx.pop();intro.hidden=true;round=0;misses=0;renderDots(0);introLine=def.intro?def.intro.text:null;locked=false;inst.round(0);if(introLine){const w=def.intro.who;api.talk(w,'');}};
   setTimeout(()=>intro.querySelector('#kg-play').focus(),300);
   return api;
 };

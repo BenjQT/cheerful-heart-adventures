@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Store harness</title>
+<script>
+/* Loads core/store.js in isolation for tests/store-tests.html.
+   ?ns=prefix      storage keys get this prefix (never the real "ch-data")
+   ?block=1        simulate blocked storage (private mode / disabled)
+   ?quota=N        simulate a full disk: writes longer than N chars throw */
+(function () {
+  const q = new URLSearchParams(location.search);
+  window.CH_STORAGE_NS = q.get('ns') || 'chtest:';
+  if (q.get('block')) {
+    try { Object.defineProperty(window, 'localStorage', { configurable: true, get() { throw new DOMException('blocked', 'SecurityError'); } }); } catch (e) {}
+  }
+  if (q.get('quota')) {
+    const lim = +q.get('quota'), orig = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) { if (String(v).length > lim) throw new DOMException('full', 'QuotaExceededError'); return orig.call(this, k, v); };
+  }
+})();
+</script>
+<script src="../core/store.js"></script>
+</head><body></body></html>

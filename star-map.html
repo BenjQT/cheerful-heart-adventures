@@ -564,7 +564,7 @@ function fitCamera(){const aspect=innerWidth/innerHeight;camera.aspect=aspect;ca
 
 function startLevel(idx){
   winTimers.forEach(clearTimeout);winTimers=[];
-  levelIdx=idx;level=LEVELS[idx];progress=0;wrongCount=0;firstTry=0;credit=0;hintsUsed=0;levelStartedAt=Date.now();hintClock=0;lastCollected=null;
+  levelIdx=idx;level=LEVELS[idx];progress=0;wrongCount=0;firstTry=0;credit=0;hintsUsed=0;levelStartedAt=Date.now();hiddenMs=0;hiddenAt=0;levelSaved=false;hintClock=0;lastCollected=null;
   const defs=buildWorld(level);applyTheme(level.theme);spawnStars(defs);placeHeroes();fitCamera();
   if(confetti){scene.remove(confetti.mesh);confetti=null}
   state='play';$('#title').hidden=true;$('#win').hidden=true;$('#hud').hidden=false;
@@ -611,7 +611,13 @@ function wrong(s){
   const line=`Oopsie! That one is ${s.n}. We need ${n}!`;talk(who,line);
   if(wrongCount>=2)setTimeout(()=>{if(state==='play'&&curTarget()===n)hint()},1800);
 }
-let hintsUsed=0,levelStartedAt=Date.now();
+let hintsUsed=0,levelStartedAt=Date.now(),hiddenMs=0,hiddenAt=0,levelSaved=false;
+/* play time = time on screen; leaving mid-level records a "stopped early" session */
+document.addEventListener('visibilitychange',()=>{if(document.hidden)hiddenAt=Date.now();else if(hiddenAt){hiddenMs+=Date.now()-hiddenAt;hiddenAt=0}});
+const levelSec=()=>Math.round((Date.now()-levelStartedAt-hiddenMs-(hiddenAt?Date.now()-hiddenAt:0))/1000);
+function saveEarly(){if(levelSaved||state!=='play'||(progress===0&&wrongCount===0&&hintsUsed===0))return;levelSaved=true;
+  if(HAS_PLAYER)CH.store.recordSession('star-map',{startedAt:new Date(levelStartedAt).toISOString(),durationSec:levelSec(),correct:firstTry,total:level.seq.length,answered:progress,hintsUsed,completed:false,level:level.name})}
+addEventListener('pagehide',saveEarly);
 function hint(){
   const n=curTarget();const s=stars.find(x=>x.n===n&&!x.collected);if(!s)return;if(!s.hinted)hintsUsed++;
   s.hinted=true;s.ar.visible=true;hintClock=0;
@@ -636,7 +642,7 @@ function finishLevel(){
   if(level.dir<0)winTimers.push(setTimeout(()=>{say('Three, two, one... Blast off!',true,null,'matthew');sfx.whoosh();for(let k=0;k<6;k++)setTimeout(()=>sparkle(new THREE.Vector3((Math.random()-.5)*W*.7,7+Math.random()*3,(Math.random()-.5)*D*.5),[0xff8ac0,0xffe066,0x9fd8ff,0xc6a8ff][k%4],70,5,.3),k*260)},end));
   winTimers.push(setTimeout(()=>{const st=levelStars();sfx.fanfare();burstConfetti();chain().forEach(h=>h.cheer=4);if(st===3){endfx.applause(4.5);endfx.fireworks(6,k=>sparkle(new THREE.Vector3((Math.random()-.5)*W*.7,7+Math.random()*3,(Math.random()-.5)*D*.5),[0xff8ac0,0xffe066,0x9fd8ff,0xc6a8ff,0x9dff9a,0xffb070][k%6],90,5.5,.32))}},end+(level.dir<0?900:0)));
   winTimers.push(setTimeout(showWin,end+(level.dir<0?2100:1300)));
-  {const st=levelStars();lastResult=null;if(HAS_PLAYER)lastResult=CH.store.recordSession('star-map',{startedAt:new Date(levelStartedAt).toISOString(),durationSec:Math.round((Date.now()-levelStartedAt)/1000),correct:firstTry,total:level.seq.length,hintsUsed,stars:st,level:level.name});
+  {const st=levelStars();lastResult=null;if(HAS_PLAYER){levelSaved=true;lastResult=CH.store.recordSession('star-map',{startedAt:new Date(levelStartedAt).toISOString(),durationSec:levelSec(),correct:firstTry,total:level.seq.length,hintsUsed,stars:st,completed:true,level:level.name})}
     prog.stars[levelIdx]=Math.max(prog.stars[levelIdx]||0,st)}
   prog.won[levelIdx]=true;prog.unlocked=Math.max(prog.unlocked,Math.min(LEVELS.length,levelIdx+2));saveProg(); // finishing a level always opens the next
 }
@@ -657,6 +663,7 @@ function showWin(){
   $('#win').hidden=false;setTimeout(()=>$('#nextBtn').focus(),300);say(msg,true,null,leaderId);
 }
 function goTitle(){
+  saveEarly();
   winTimers.forEach(clearTimeout);winTimers=[];if(speechOK)speechSynthesis.cancel();
   state='title';$('#hud').hidden=true;$('#win').hidden=true;$('#title').hidden=false;
   const defs=buildWorld({seq:[],seed:5});applyTheme('morning');spawnStars(defs);placeHeroes();fitCamera();

@@ -5,6 +5,10 @@
    • Versioned schema, kept in localStorage key "ch-data".
    • First run migrates the old device-level stars (kg-progress,
      starmap-progress) into a default player. Old keys are left in place.
+   • Every game session is recorded for the active player (finished or
+     stopped early), newest 200 kept per player.
+   • Data written by a NEWER version of the app is backed up before this
+     version reads it, so going back a version never destroys it.
    • Never throws: corrupt data is backed up and replaced by defaults;
      if storage is blocked (private mode) it runs in memory and
      store.available === false so the UI can tell a grown-up.
@@ -13,11 +17,14 @@
   'use strict';
   const CH = (window.CH = window.CH || {});
 
-  const KEY = 'ch-data';
+  const NS = typeof window.CH_STORAGE_NS === 'string' ? window.CH_STORAGE_NS : '';
+  const KEY = NS + 'ch-data';
+  const OLD_KG = NS + 'kg-progress', OLD_SM = NS + 'starmap-progress';
   const SCHEMA = 2;
   const MAX_PLAYERS = 10;
   const MAX_SESSIONS = 200;
   const MAX_NAME = 15;
+  const MAX_EXTRA = 4000;   // chars of JSON per game in player.extra
   const GAME_IDS = ['star-map', 'shapes', 'patterns', 'treasure', 'cookies', 'bridge', 'sorting', 'clock', 'market', 'hide-seek', 'garden', 'race'];
   const AVATAR_IDS = ['bunny', 'cat', 'dog', 'bear', 'panda', 'fox', 'frog', 'owl', 'chick', 'lion'];
 
@@ -65,19 +72,39 @@
       completed: !!g.completed
     };
   }
+  /* session record:
+       gameId, startedAt (ISO), durationSec (time the game was on screen),
+       correct (first-try right answers), total (questions in the game),
+       answered (questions finished), hintsUsed, stars (0 if stopped early),
+       completed (false = stopped early), level (Star Map only)            */
   function sanitizeSession(s) {
     if (!s || typeof s !== 'object' || GAME_IDS.indexOf(s.gameId) < 0) return null;
+    const completed = s.completed !== false;
+    const total = clampInt(s.total, 0, 999, 0);
+    const answered = completed ? total : clampInt(s.answered, 0, total, 0);
     const out = {
       gameId: s.gameId,
       startedAt: isoOr(s.startedAt, now()),
       durationSec: clampInt(s.durationSec, 0, 86400, 0),
-      correct: clampInt(s.correct, 0, 999, 0),
-      total: clampInt(s.total, 0, 999, 0),
+      correct: Math.min(clampInt(s.correct, 0, 999, 0), answered),
+      total, answered,
       hintsUsed: clampInt(s.hintsUsed, 0, 999, 0),
-      stars: clampInt(s.stars, 0, 3, 0)
+      stars: completed ? clampInt(s.stars, 0, 3, 0) : 0,
+      completed
     };
     if (s.level != null) out.level = String(s.level).slice(0, 40);
     return out;
+  }
+  function sanitizeExtra(x) {
+    if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
+    const out = {};
+    for (const id of GAME_IDS) {
+      const v = x[id];
+      if (!v || typeof v !== 'object' || Array.isArray(v)) continue;
+      try { if (JSON.stringify(v).length <= MAX_EXTRA) out[id] = JSON.parse(JSON.stringify(v)); } catch (e) {}
+    }
+    if (x.map && typeof x.map === 'object' && Array.isArray(x.map.seen)) out.map = { seen: x.map.seen.filter(id => GAME_IDS.indexOf(id) >= 0) };
+    return Object.keys(out).length ? out : null;
   }
   function sanitizePlayer(p) {
     if (!p || typeof p !== 'object') return null;
@@ -96,7 +123,8 @@
       stickers, games, sessions
     };
     if (typeof p.sayAs === 'string' && cleanName(p.sayAs)) out.sayAs = cleanName(p.sayAs).slice(0, 30);
-    if (p.extra && typeof p.extra === 'object') out.extra = p.extra; // per-game extras (e.g. star-map level unlocks)
+    const extra = sanitizeExtra(p.extra);                           // per-game extras (e.g. star-map level unlocks, map "seen")
+    if (extra) out.extra = extra;
     if (p.migrated === true) out.migrated = true;                   // "Star Friend" made from old device stars, until renamed/played
     return out;
   }
@@ -129,8 +157,8 @@
   // v1 = the original game: device-wide { kg-progress: {won:{id:stars}, music}, starmap-progress: {won:{levelIdx:true}, unlocked, leader, music} }
   function migrateFromV1() {
     let kg = null, sm = null;
-    try { kg = JSON.parse(read('kg-progress') || 'null'); } catch (e) {}
-    try { sm = JSON.parse(read('starmap-progress') || 'null'); } catch (e) {}
+    try { kg = JSON.parse(read(OLD_KG) || 'null'); } catch (e) {}
+    try { sm = JSON.parse(read(OLD_SM) || 'null'); } catch (e) {}
     const st = defaultState();
     if (kg && kg.music === false) st.settings.music = 0;
     const games = {};
@@ -164,7 +192,7 @@
   };
 
   /* ---------------- load / save ---------------- */
-  let state, listeners = [], loadIssue = null;
+  let state, listeners = [], loadIssue = null, newerSchema = 0;
   function load() {
     const raw = read(KEY);
     if (raw == null) { state = migrateFromV1(); persist(); return state; }
@@ -176,17 +204,24 @@
       state = migrateFromV1(); persist(); return state;   // rebuild from the old device stars if any
     }
     let v = Number(obj.schemaVersion) || 2;
+    if (v > SCHEMA) {
+      // saved by a newer version of the app: keep an untouched copy once, then read what we understand
+      newerSchema = v; loadIssue = 'newer';
+      if (read(KEY + '-v' + v + '-backup') == null) write(KEY + '-v' + v + '-backup', raw);
+    }
     while (MIGRATIONS[v]) { obj = MIGRATIONS[v](obj); v = obj.schemaVersion; }
     state = sanitizeState(obj);
     return state;
   }
   function persist() {
     if (!ls) return false;
-    const out = { schemaVersion: SCHEMA, activePlayerId: state.activePlayerId, players: state.players, settings: state.settings, savedAt: now() };
-    let ok = write(KEY, JSON.stringify(out));
-    if (!ok) {                       // quota: trim session history harder and retry once
-      state.players.forEach(p => { p.sessions = p.sessions.slice(-50); });
-      ok = write(KEY, JSON.stringify(out));
+    const out = () => JSON.stringify({ schemaVersion: SCHEMA, activePlayerId: state.activePlayerId, players: state.players, settings: state.settings, savedAt: now() });
+    let ok = write(KEY, out());
+    if (!ok) {                       // storage full: keep fewer old sessions and retry (stars, stickers, profiles are never trimmed)
+      for (const keep of [100, 50, 20]) {
+        state.players.forEach(p => { if (p.sessions.length > keep) p.sessions = p.sessions.slice(-keep); });
+        if ((ok = write(KEY, out()))) break;
+      }
     }
     return ok;
   }
@@ -195,7 +230,7 @@
 
   load();
   // keep tabs in sync (e.g. Grown-ups' Corner open in another tab)
-  addEventListener('storage', e => { if (e.key === KEY) { load(); emit('external'); } });
+  addEventListener('storage', e => { if (e.key === KEY || e.key === null) { load(); emit('external'); } });
 
   /* ---------------- public API ---------------- */
   const clone = o => JSON.parse(JSON.stringify(o));
@@ -204,7 +239,8 @@
   const store = {
     SCHEMA, MAX_PLAYERS, MAX_SESSIONS, MAX_NAME, GAME_IDS, AVATAR_IDS, DEFAULT_SETTINGS,
     get available() { return !!ls && lastWriteOk; },
-    get loadIssue() { return loadIssue; },
+    get loadIssue() { return loadIssue; },        // null | 'corrupt' | 'newer'
+    get newerSchema() { return newerSchema; },
     get migrated() { return state.players.some(p => p.migrated); },
     cleanName,
 
@@ -259,12 +295,19 @@
     getExtra(gameId) { const p = find(state.activePlayerId); return p && p.extra && p.extra[gameId] ? clone(p.extra[gameId]) : null; },
     setExtra(gameId, data) { const p = find(state.activePlayerId); if (!p) return false; p.extra = p.extra || {}; p.extra[gameId] = data; return persist(); },
 
-    /** recordSession(gameId, {startedAt, durationSec, correct, total, hintsUsed, stars, level})
-     *  for the ACTIVE player. Returns {personalBest, firstCompletion, newSticker, prevBestStars, game} */
+    /** recordSession(gameId, {startedAt, durationSec, correct, total, hintsUsed, stars, level, completed, answered})
+     *  for the ACTIVE player. A stopped-early session (completed:false) is only added to the history.
+     *  Returns {personalBest, firstCompletion, newSticker, prevBestStars, prevBestScore, game} or {partial:true} */
     recordSession(gameId, s) {
       const p = find(state.activePlayerId);
       const sess = sanitizeSession(Object.assign({ gameId }, s));
       if (!p || !sess) return null;
+      if (!sess.completed) {
+        p.sessions.push(sess);
+        if (p.sessions.length > MAX_SESSIONS) p.sessions = p.sessions.slice(-MAX_SESSIONS);
+        commit('session', { id: p.id, gameId, partial: true });
+        return { partial: true };
+      }
       const g = p.games[gameId] = sanitizeGame(p.games[gameId]);
       const prevStars = g.bestStars, prevScore = g.bestScore, wasCompleted = g.completed;
       const pct = sess.total ? sess.correct / sess.total : 0;
@@ -286,6 +329,9 @@
     settings() { return clone(state.settings); },
     setting(k) { return state.settings[k]; },
     setSettings(patch) { state.settings = sanitizeSettings(Object.assign({}, state.settings, patch)); commit('settings', patch); return clone(state.settings); },
+
+    /** session history for one player (oldest first), optionally for one game */
+    sessions(id, gameId) { const p = find(id); if (!p) return []; return clone(gameId ? p.sessions.filter(x => x.gameId === gameId) : p.sessions); },
 
     /** full export (for backups / debugging) */
     exportAll() { return clone({ schemaVersion: SCHEMA, activePlayerId: state.activePlayerId, players: state.players, settings: state.settings }); }

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Store Tests</title>
+<link rel="stylesheet" href="../css/theme.css">
+<style>
+  body{background:var(--paper,#fffdf6);color:var(--ink,#2a1f3d);font-family:var(--body,system-ui,sans-serif);margin:0;padding:16px;max-width:900px;margin-inline:auto}
+  h1{font-family:var(--display,inherit);margin:.2em 0}
+  #sum{font-weight:700;font-size:1.1rem;margin:.5em 0 1em}
+  table{width:100%;border-collapse:collapse;font-size:.95rem}
+  td,th{padding:6px 8px;border-bottom:1px solid rgba(42,31,61,.15);text-align:left;vertical-align:top}
+  .pass{color:#1f5814;font-weight:700}.fail{color:#a3204f;font-weight:700}
+  code{font-size:.85em;word-break:break-word}
+</style></head>
+<body>
+<h1>Player store tests</h1>
+<p>Runs <code>core/store.js</code> in a sandbox with its own storage keys (prefix <code>chtest:</code>). Real player data is never read or changed.</p>
+<div id="sum" role="status">Running…</div>
+<table><thead><tr><th>Result</th><th>Test</th><th>Details</th></tr></thead><tbody id="out"></tbody></table>
+<script>
+const NS='chtest:';
+const out=document.getElementById('out');let pass=0,fail=0;
+const clean=()=>{Object.keys(localStorage).filter(k=>k.startsWith(NS)).forEach(k=>localStorage.removeItem(k))};
+const seed=o=>{clean();Object.entries(o||{}).forEach(([k,v])=>localStorage.setItem(NS+k,typeof v==='string'?v:JSON.stringify(v)))};
+function boot(params){return new Promise(res=>{const f=document.createElement('iframe');f.style.display='none';f.src='harness.html?ns='+encodeURIComponent(NS)+(params||'')+'&t='+Date.now();f.onload=()=>res({w:f.contentWindow,S:f.contentWindow.CH.store,f});document.body.appendChild(f)})}
+const saved=()=>JSON.parse(localStorage.getItem(NS+'ch-data')||'null');
+function ok(c,msg){if(!c)throw new Error(msg||'assertion failed')}
+function eq(a,b,msg){if(JSON.stringify(a)!==JSON.stringify(b))throw new Error((msg||'')+' expected '+JSON.stringify(b)+' got '+JSON.stringify(a))}
+const sess=(o)=>Object.assign({startedAt:new Date().toISOString(),durationSec:60,correct:7,total:8,hintsUsed:0,stars:2},o);
+
+const TESTS=[
+['Fresh install starts empty and saves schema 2',async()=>{seed();const{S}=await boot();eq(S.players().length,0);ok(saved(),'nothing saved');eq(saved().schemaVersion,2);eq(S.loadIssue,null)}],
+
+['Old device stars migrate into "Star Friend"; old keys kept',async()=>{
+  seed({'kg-progress':{won:{shapes:3,clock:2,bogus:3},music:false},'starmap-progress':{won:{0:true,1:true},unlocked:3,leader:'ali'}});
+  const{S}=await boot();const ps=S.players();eq(ps.length,1);const p=ps[0];
+  eq(p.name,'Star Friend');eq(p.avatar,'chick');eq(p.games.shapes.bestStars,3);eq(p.games.clock.bestStars,2);ok(!p.games.bogus,'unknown game kept');
+  eq(p.games['star-map'].bestStars,2,'star-map stars');eq(p.extra['star-map'].wonLevels,[0,1]);eq(p.extra['star-map'].unlocked,3);
+  eq(S.activeId(),p.id);eq(S.setting('music'),0,'music off carried over');ok(S.migrated);
+  ok(localStorage.getItem(NS+'kg-progress')&&localStorage.getItem(NS+'starmap-progress'),'old keys removed')}],
+
+['Migration runs only once',async()=>{seed({'kg-progress':{won:{shapes:3}}});await boot();const first=saved();const{S}=await boot();eq(S.players().length,1);eq(S.players()[0].id,first.players[0].id)}],
+
+['Corrupt data is backed up and rebuilt',async()=>{
+  seed({'ch-data':'{not json','kg-progress':{won:{garden:1}}});const{S}=await boot();
+  eq(S.loadIssue,'corrupt');ok(Object.keys(localStorage).some(k=>k.startsWith(NS+'ch-data-corrupt-')&&localStorage.getItem(k)==='{not json'),'no backup');
+  eq(S.players()[0].games.garden.bestStars,1,'rebuilt from old stars')}],
+
+['Data from a newer app version is backed up first',async()=>{
+  const v99={schemaVersion:99,activePlayerId:'a',players:[{id:'a',name:'Zoe',avatar:'fox',games:{shapes:{bestStars:3,completed:true,plays:1}},stickers:['shapes'],sessions:[],futureField:1}],settings:{}};
+  seed({'ch-data':v99});const{S}=await boot();
+  eq(S.loadIssue,'newer');eq(S.newerSchema,99);eq(JSON.parse(localStorage.getItem(NS+'ch-data-v99-backup')).players[0].futureField,1,'backup');
+  eq(S.activePlayer().name,'Zoe');eq(S.activePlayer().games.shapes.bestStars,3)}],
+
+['Bad saved data is cleaned on load',async()=>{
+  const players=[{id:'x',name:'<b>Zo</b>e\u0007 ',avatar:'dragon',age:9,games:{shapes:{bestStars:7,plays:-3},nope:{}},stickers:['shapes','shapes','nope'],sessions:[{gameId:'shapes',correct:99,total:8,stars:9},{gameId:'nope'}],extra:{'star-map':{unlocked:2},hack:{x:1},clock:{big:'x'.repeat(5000)}}},
+    {id:'x',name:'Dup'},{name:'   '},null];
+  for(let i=0;i<12;i++)players.push({id:'p'+i,name:'Kid '+i});
+  seed({'ch-data':{schemaVersion:2,activePlayerId:'ghost',players,settings:{music:7,voiceRate:'fast',unlockMode:'everything',sound:'yes'}}});
+  const{S}=await boot();const ps=S.players();
+  eq(ps.length,10,'max 10 players');const z=ps[0];eq(z.name,'Zoe');eq(z.avatar,'bunny');eq(z.age,null);
+  eq(z.games.shapes.bestStars,3);eq(z.games.shapes.plays,0);ok(!z.games.nope);eq(z.stickers,['shapes']);
+  eq(z.sessions.length,1);eq(z.sessions[0].stars,3);eq(z.sessions[0].correct,8,'correct capped to answered');
+  eq(Object.keys(z.extra),['star-map'],'extra filtered');eq(S.activeId(),null,'unknown active id');
+  const st=S.settings();eq(st.music,1);eq(st.voiceRate,0.9);eq(st.unlockMode,'gentle');eq(st.sound,true)}],
+
+['Finished session updates stars, sticker and personal best',async()=>{
+  seed();const{S}=await boot();const a=S.addPlayer({name:'Ana',avatar:'cat',age:5}).player;S.setActive(a.id);
+  let r=S.recordSession('shapes',sess({correct:5,stars:1}));ok(r.firstCompletion&&r.newSticker&&!r.personalBest,'first');
+  r=S.recordSession('shapes',sess({correct:6,stars:1}));ok(r.personalBest&&!r.newSticker,'better score same stars = PB');
+  r=S.recordSession('shapes',sess({correct:4,stars:1}));ok(!r.personalBest,'worse is not PB');
+  r=S.recordSession('shapes',sess({correct:8,stars:3}));ok(r.personalBest);
+  const g=S.activePlayer().games.shapes;eq(g.bestStars,3);eq(g.plays,4);eq(g.bestScore,8);eq(S.activePlayer().stickers,['shapes'])}],
+
+['Stopped-early session goes to history only',async()=>{
+  seed();const{S}=await boot();const a=S.addPlayer({name:'Ben'}).player;S.setActive(a.id);
+  const r=S.recordSession('clock',sess({completed:false,answered:3,correct:5,stars:3}));eq(r,{partial:true});
+  const p=S.activePlayer();ok(!p.games.clock,'no game stats');eq(p.stickers,[]);
+  const h=S.sessions(a.id,'clock');eq(h.length,1);eq(h[0].completed,false);eq(h[0].answered,3);eq(h[0].correct,3,'correct ≤ answered');eq(h[0].stars,0)}],
+
+['Sessions are per player',async()=>{
+  seed();const{S}=await boot();const a=S.addPlayer({name:'Ana'}).player,b=S.addPlayer({name:'Ben'}).player;
+  S.setActive(a.id);S.recordSession('garden',sess());S.setActive(b.id);S.recordSession('market',sess());
+  eq(S.sessions(a.id).map(x=>x.gameId),['garden']);eq(S.sessions(b.id).map(x=>x.gameId),['market']);
+  S.deletePlayer(b.id);eq(S.activeId(),null);eq(S.players().length,1)}],
+
+['History keeps the newest 200 sessions per player',async()=>{
+  seed();const{S}=await boot();const a=S.addPlayer({name:'Cam'}).player;S.setActive(a.id);
+  for(let i=0;i<205;i++)S.recordSession('patterns',sess({durationSec:i}));
+  const h=S.sessions(a.id);eq(h.length,200);eq(h[0].durationSec,5,'oldest dropped');eq(h[199].durationSec,204);
+  eq(saved().players[0].sessions.length,200,'saved');eq(S.activePlayer().games.patterns.plays,205,'play count keeps counting')}],
+
+['Full storage trims old sessions but keeps stars',async()=>{
+  seed();const{S}=await boot('&quota=15000');const a=S.addPlayer({name:'Dee'}).player;S.setActive(a.id);
+  S.recordSession('cookies',sess({stars:3,correct:8}));for(let i=0;i<150;i++)S.recordSession('sorting',sess());
+  const d=saved();ok(d,'nothing saved');ok(JSON.stringify(d).length<=15000+100,'over quota');
+  ok(d.players[0].sessions.length<=100&&d.players[0].sessions.length>=20,'sessions '+d.players[0].sessions.length);
+  eq(d.players[0].games.cookies.bestStars,3);ok(S.available,'should report available after trimming')}],
+
+['Blocked storage still works in memory',async()=>{
+  seed();const{S}=await boot('&block=1');eq(S.available,false);const r=S.addPlayer({name:'Eve'});ok(r.ok);S.setActive(r.player.id);
+  ok(S.recordSession('race',sess()));eq(S.activePlayer().games.race.plays,1);eq(saved(),null,'should not write')}],
+
+['Names are cleaned; empty or full is refused',async()=>{
+  seed();const{S}=await boot();eq(S.addPlayer({name:'   '}),{ok:false,error:'name'});
+  eq(S.addPlayer({name:'  Maria   Clara de la Cruz '}).player.name,'Maria Clara de');
+  for(let i=0;i<9;i++)S.addPlayer({name:'K'+i});eq(S.addPlayer({name:'One more'}),{ok:false,error:'full'})}],
+
+['Reset keeps the profile, clears progress',async()=>{
+  seed();const{S}=await boot();const a=S.addPlayer({name:'Fin',avatar:'owl'}).player;S.setActive(a.id);S.recordSession('bridge',sess());S.setExtra('star-map',{unlocked:4});
+  S.resetPlayer(a.id);const p=S.activePlayer();eq(p.name,'Fin');eq(p.avatar,'owl');eq(p.games,{});eq(p.sessions,[]);eq(p.stickers,[]);eq(S.getExtra('star-map'),null)}],
+
+];
+
+(async()=>{
+  const realBefore=localStorage.getItem('ch-data');
+  for(const [name,fn] of TESTS){let err=null;try{await fn()}catch(e){err=e}document.querySelectorAll('iframe').forEach(f=>f.remove());
+    const tr=document.createElement('tr');tr.innerHTML=`<td class="${err?'fail':'pass'}">${err?'FAIL':'pass'}</td><td></td><td><code></code></td>`;tr.children[1].textContent=name;tr.querySelector('code').textContent=err?err.message:'';out.appendChild(tr);err?fail++:pass++}
+  clean();
+  if(localStorage.getItem('ch-data')!==realBefore){fail++;const tr=document.createElement('tr');tr.innerHTML='<td class="fail">FAIL</td><td>Real data unchanged</td><td>ch-data changed during tests</td>';out.appendChild(tr)}
+  document.getElementById('sum').textContent=`${pass} passed, ${fail} failed`;document.getElementById('sum').className=fail?'fail':'pass';window.__result={pass,fail};
+})();
+</script>
+</body></html>
