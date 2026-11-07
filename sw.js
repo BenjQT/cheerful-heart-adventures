@@ -8,7 +8,7 @@
      loaded from other websites. No data is ever sent anywhere.
    Bump VERSION whenever files change so devices pick up the new copies.
    ===================================================================== */
-const VERSION = 'ch-v4-2026-11-07';
+const VERSION = 'ch-v5-2026-11-07';
 const CORE = `${VERSION}-core`;
 
 const FILES = [

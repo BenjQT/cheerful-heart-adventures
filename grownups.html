@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="The Trio">
 <meta name="format-detection" content="telephone=no">
 <script src="core/pwa.js" defer></script>
-<title>Grown-ups’ Corner · Cheerful Heart Adventures</title>
+<title>Grown-ups’ Corner · The Trio’s Adventures</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#6ab8ff">
 <link rel="stylesheet" href="css/theme.css">
@@ -233,7 +233,7 @@ function renderReport(){
   const done=CFG.GAMES.filter(g=>CFG.isCompleted(p,g.id)).length;
   const mins=Math.round(ss.reduce((a,s)=>a+(s.durationSec||0),0)/60);
   const last=ss.length?ss[ss.length-1].startedAt:null;
-  $('#print-head').innerHTML=`<h1 style="margin:0;font-family:var(--display);font-weight:400">Cheerful Heart Adventures — ${esc(p.name)}</h1><p class="muted">Progress report · ${esc(new Date().toLocaleDateString())}</p>`;
+  $('#print-head').innerHTML=`<h1 style="margin:0;font-family:var(--display);font-weight:400">The Trio’s Adventures — ${esc(p.name)}</h1><p class="muted">Progress report · ${esc(new Date().toLocaleDateString())}</p>`;
   r.appendChild(h('div',{class:'tiles',style:{marginTop:'12px'},html:
     `<div class="tile"><b>${totalStars}<span style="font-size:1rem"> / 36</span></b><span>stars</span></div>`+
     `<div class="tile"><b>${done}<span style="font-size:1rem"> / 12</span></b><span>stops finished · stickers</span></div>`+

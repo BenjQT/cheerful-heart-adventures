@@ -506,7 +506,7 @@ async function drawCertificate(p){
   rr(g,50,50,W-100,H-100,28);g.lineWidth=5;g.strokeStyle='#d6336c';g.stroke();
   [[92,92],[W-92,92],[92,H-92],[W-92,H-92]].forEach(([x,y])=>{starPath(g,x,y,30);g.fillStyle='#ffc93c';g.fill();g.lineWidth=5;g.strokeStyle='#c98207';g.lineJoin='round';g.stroke()});
   g.textAlign='center';g.textBaseline='alphabetic';
-  g.font=`700 32px ${BODY}`;g.fillStyle='#d6336c';g.fillText('♥  CHEERFUL HEART ACADEMY  ♥',W/2,148);
+  g.font=`700 32px ${BODY}`;g.fillStyle='#d6336c';g.fillText('♥  THE POWER OF FRIENDSHIP  ♥',W/2,148);
   g.font=`124px ${DISPLAY}`;g.lineJoin='round';g.lineWidth=20;g.strokeStyle='#6e4322';g.strokeText('Ready for Grade 1!',W/2,280);g.fillStyle='#ffc93c';g.fillText('Ready for Grade 1!',W/2,280);
   g.font=`600 36px ${BODY}`;g.fillStyle='#2a1f3d';g.fillText('This certificate is proudly given to',W/2,352);
   let fs=112;const name=p.name;g.font=`${fs}px ${DISPLAY}`;while(g.measureText(name).width>W-520&&fs>48){fs-=4;g.font=`${fs}px ${DISPLAY}`}
