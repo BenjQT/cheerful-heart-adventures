@@ -13,7 +13,7 @@ const HEROES={
 };
 for(const k in HEROES){HEROES[k].head='img/'+k+'.webp';HEROES[k].full='img/'+k+'-full.webp'}
 KG.HEROES=HEROES;KG.ORDER=['ali','wynea','matthew'];
-KG.GAMES=[
+KG.GAMES=(window.CH&&CH.config)?CH.config.GAMES:[
   {id:'star-map',file:'star-map.html',title:'The Lost Star Map',skill:'Counting and number order',tag:'Counting',scene:'forest',icon:'star'},
   {id:'shapes',file:'shapes.html',title:'Shape Kingdom Rescue',skill:'Naming shapes',tag:'Shapes',scene:'castle',icon:'shapes'},
   {id:'patterns',file:'patterns.html',title:'Matthew’s Pattern Machine',skill:'Finishing patterns',tag:'Patterns',scene:'lab',icon:'pattern'},

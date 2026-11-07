@@ -22,7 +22,7 @@
       else if (k === 'html') e.innerHTML = v;
       else if (k === 'text') e.textContent = v;
       else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
-      else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+      else if (k === 'style' && typeof v === 'object') Object.keys(v).forEach(sk => sk.startsWith('--') ? e.style.setProperty(sk, v[sk]) : (e.style[sk] = v[sk]));
       else e.setAttribute(k, v === true ? '' : v);
     }
     (Array.isArray(kids) ? kids : kids != null ? [kids] : []).forEach(c => {

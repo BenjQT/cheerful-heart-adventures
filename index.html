@@ -30,40 +30,67 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
 .who-head h1{margin:0;font-family:var(--display);font-weight:400;font-size:var(--fs-xl);color:#fff;text-shadow:0 3px 0 var(--wood-d),2px 0 0 var(--wood-d),-2px 0 0 var(--wood-d),0 -2px 0 var(--wood-d)}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(150px,42vw),1fr));gap:clamp(12px,2.4vw,20px)}
 
-/* ---- hub (unchanged look, now per-player) ---- */
-#scr-hub{display:grid;gap:18px}
-.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-right:calc(var(--tap) + 10px)}
+/* ---- adventure map ---- */
+#scr-hub{display:grid;gap:clamp(8px,1.6vh,14px);align-content:start;width:min(1440px,100%)}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;padding-right:calc(var(--tap) + 10px)}
 .bar .sp{flex:1}
-.prog{font-weight:700;color:#fff;background:rgba(42,31,61,.6);padding:.4em 1em;border-radius:999px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;min-height:44px}
+#player-slot{min-width:0;flex:0 1 auto}#player-slot .ch-player{max-width:100%}
+#prog{flex:none;white-space:nowrap}
+#prog .short{display:none}
+@media (max-width:520px){#prog .long{display:none}#prog .short{display:inline}}
+.prog{font-weight:700;color:#fff;background:rgba(42,31,61,.62);padding:.4em 1em;border-radius:999px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;min-height:44px}
 .prog svg{width:22px;height:22px}
-.hero{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:10px}
-.hero .copy{display:grid;gap:12px;justify-items:start}
-.hero h1{font-size:clamp(2.4rem,7vw,4.6rem)}
-.trio{display:flex;align-items:flex-end;justify-content:center;height:clamp(170px,32vw,320px)}
-.trio button{border:0;background:none;padding:0;height:100%;margin:0 -12px;display:flex;align-items:flex-end;cursor:pointer}
-.trio img{height:100%;width:auto;filter:drop-shadow(0 8px 0 rgba(42,31,61,.2));transform-origin:50% 100%;transform:translateY(calc(var(--kick)*-8px)) scaleY(calc(1 - var(--kick)*.02))}
-.trio button:nth-child(2) img{height:108%}
-.trio button.ch-wave img,.trio button.cheer img{animation:kg-jump .42s ease-in-out 3}
-.board{padding:clamp(12px,2.4vw,20px)}
-.board h2{margin:0 0 12px;font-family:var(--display);font-weight:400;font-size:clamp(1.3rem,4vw,1.8rem);color:#fff;text-shadow:0 2px 0 var(--wood-d)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:clamp(10px,2vw,16px)}
-.game{display:grid;grid-template-rows:auto 1fr;text-decoration:none;color:var(--ink);background:var(--paper);border-radius:16px;overflow:hidden;box-shadow:inset 0 -6px 0 #ecdcbf,0 5px 0 rgba(42,31,61,.2);transition:transform .14s}
-.game:active{transform:translateY(3px)}
-@media (hover:hover){.game:hover{transform:translateY(-4px) rotate(-.4deg)}}
-.thumb{position:relative;aspect-ratio:16/9;max-width:100%;overflow:hidden}
-.thumb canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
-.thumb .ic{position:absolute;left:50%;top:52%;width:44%;aspect-ratio:1;transform:translate(-50%,-50%) translateY(calc(var(--kick)*-4px));filter:drop-shadow(0 5px 0 rgba(42,31,61,.3))}
-.thumb .ic svg{width:100%;height:100%;overflow:visible}
-.thumb .no{position:absolute;left:8px;top:8px;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-weight:700;background:var(--paper);box-shadow:0 3px 0 rgba(42,31,61,.25);font-variant-numeric:tabular-nums}
-.thumb .won{position:absolute;right:8px;top:8px;background:rgba(42,31,61,.55);padding:3px 6px;border-radius:999px}
-.info{padding:10px 12px 14px;display:grid;gap:6px;align-content:start}
-.info .t{font-family:var(--display);font-size:clamp(1.12rem,3.4vw,1.3rem);line-height:1.1}
-.info .s{font-weight:600;font-size:.9rem;color:#7a5a3a}
-.chip{justify-self:start;font-weight:700;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:.25em .7em;border-radius:999px;background:var(--c,#3f8fe0)}
-.greet{min-height:84px}
+.maphead{display:grid;grid-template-columns:1fr auto;align-items:end;gap:10px}
+.friends{display:flex;align-items:flex-end;height:clamp(96px,17vh,170px)}
+.friends button{border:0;background:none;padding:0;height:100%;margin:0 -10px;display:flex;align-items:flex-end;cursor:pointer;min-width:var(--tap)}
+.friends img{height:100%;width:auto;filter:drop-shadow(0 6px 0 rgba(42,31,61,.2));transform-origin:50% 100%;transform:translateY(calc(var(--kick)*-6px))}
+.friends button:nth-child(2) img{height:106%}
+.friends button.ch-wave img,.friends button.ch-cheer img{animation:kg-jump .42s ease-in-out 3}
+@media (orientation:portrait),(max-width:699px){.maphead{grid-template-columns:1fr}.friends{justify-content:center;order:-1}}
+
+.map{position:relative;width:100%;border-radius:var(--r-lg);background:rgba(120,190,90,.22);box-shadow:inset 0 0 0 4px rgba(255,255,255,.35)}
+.map svg.road{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.road .edge{fill:none;stroke:#8a5c3c;stroke-linecap:round;stroke-linejoin:round}
+.road .sand{fill:none;stroke:#f1d9a4;stroke-linecap:round;stroke-linejoin:round}
+.road .dash{fill:none;stroke:#fff;stroke-linecap:round;stroke-dasharray:2 22;opacity:.9}
+.road .done{fill:none;stroke:#ffc93c;stroke-linecap:round;stroke-linejoin:round;opacity:.95}
+.stop{position:absolute;transform:translate(-50%,calc(var(--s) / -2));display:grid;justify-items:center;gap:4px;width:var(--s);border:0;padding:0;background:none;cursor:pointer;color:var(--ink)}
+.stop .disc{position:relative;width:var(--s);height:var(--s);border-radius:50%;overflow:hidden;background:#fff;
+  box-shadow:0 0 0 5px #fff,0 0 0 9px var(--ring,#8a5c3c),0 8px 0 9px rgba(42,31,61,.22);transition:transform var(--dur-1)}
+.stop .disc canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.stop .disc .ic{position:absolute;left:50%;top:54%;width:58%;aspect-ratio:1;transform:translate(-50%,-50%);filter:drop-shadow(0 4px 0 rgba(42,31,61,.3))}
+.stop .disc .ic svg{width:100%;height:100%;overflow:visible}
+.stop .num{position:absolute;left:-4px;top:-4px;z-index:2;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--paper);box-shadow:0 3px 0 rgba(42,31,61,.3);font-variant-numeric:tabular-nums}
+.stop .host{position:absolute;right:-8px;top:calc(var(--s) * .64);z-index:2;width:clamp(34px,calc(var(--s)*.36),50px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#fff;border:3px solid var(--ring);box-shadow:0 3px 0 rgba(42,31,61,.25)}
+.stop .host img{width:100%;height:100%;object-fit:cover}
+.stop .lbl{font-family:var(--display);font-size:clamp(.95rem,calc(var(--s)*.15),1.2rem);line-height:1.05;text-align:center;color:var(--ink);background:var(--paper);padding:.25em .6em .3em;border-radius:12px;box-shadow:0 3px 0 rgba(42,31,61,.2);white-space:nowrap;max-width:calc(var(--s)*1.7);overflow:hidden;text-overflow:ellipsis}
+.stop .st{position:absolute;left:50%;top:calc(var(--s) - 22px);line-height:0;transform:translateX(-50%);z-index:2;background:rgba(42,31,61,.7);border-radius:999px;padding:2px 6px}
+.stop.is-locked .disc{filter:grayscale(1) brightness(.85)}
+.stop.is-locked .disc .ic{opacity:.45}
+.stop .lock{position:absolute;left:50%;top:50%;z-index:3;width:44%;aspect-ratio:1;transform:translate(-50%,-62%);display:grid;place-items:center;border-radius:50%;background:rgba(42,31,61,.75);color:#fff}
+.stop .lock svg{width:58%;height:58%}
+.stop.is-next .disc{box-shadow:0 0 0 5px #fff,0 0 0 9px var(--gold),0 0 28px 12px rgba(255,201,60,.85),0 8px 0 9px rgba(42,31,61,.22);animation:ch-bob 1.4s ease-in-out infinite}
+.stop .flag{position:absolute;left:50%;top:-14px;z-index:4;transform:translate(-50%,-100%);font-family:var(--display);font-size:.95rem;color:var(--ink);background:var(--gold);padding:.2em .7em;border-radius:999px;box-shadow:inset 0 -3px 0 var(--gold-d),0 3px 0 rgba(42,31,61,.25);white-space:nowrap;animation:ch-bob 1s ease-in-out infinite}
+.stop.is-finale{--s:calc(var(--base) * 1.3)}
+.stop.is-finale .disc{box-shadow:0 0 0 5px #fff,0 0 0 10px var(--heart),0 8px 0 10px rgba(42,31,61,.22)}
+.stop.is-finale.is-next .disc{box-shadow:0 0 0 5px #fff,0 0 0 10px var(--gold),0 0 30px 14px rgba(255,201,60,.9),0 8px 0 10px rgba(42,31,61,.22)}
+.stop:active .disc{transform:translateY(4px)}
+@media (hover:hover){.stop:not(.is-locked):hover .disc{transform:translateY(-4px) scale(1.04)}}
+.stop:focus-visible{outline:none;box-shadow:none!important}
+.stop:focus-visible .disc{outline:5px solid var(--focus);outline-offset:8px}
+
+/* host intro card */
+.intro-card{display:grid;grid-template-columns:auto 1fr;gap:var(--gap-3);align-items:end}
+.intro-card .hostimg{height:clamp(150px,30vh,240px);width:auto;border:0;background:none;padding:0;cursor:pointer}
+.intro-card .hostimg img{height:100%;width:auto;filter:drop-shadow(0 6px 0 rgba(42,31,61,.2))}
+.intro-card .txt{display:grid;gap:8px;align-content:end}
+.intro-card .place{font-family:var(--display);font-size:var(--fs-sm);color:var(--ring)}
+.intro-card .gt{font-family:var(--display);font-size:var(--fs-lg);line-height:1.05}
+.intro-card .say{font-weight:600;font-size:var(--fs-md);background:var(--cream);border-radius:var(--r-md);padding:10px 14px}
+@media (max-width:480px){.intro-card{grid-template-columns:1fr;justify-items:center;text-align:center}}
+
 .grown{font-weight:600;color:var(--ink);background:rgba(255,253,246,.9);border-radius:14px;padding:12px 16px;line-height:1.45;font-size:.95rem;max-width:72ch}
 .grown b{font-family:var(--display);font-weight:400;font-size:1.1rem}
-@media (max-width:700px){.hero{grid-template-columns:1fr}.hero .copy{justify-items:center;text-align:center}.trio{order:-1}}
 </style>
 </head>
 <body class="ch-app">
@@ -87,7 +114,7 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
   <div class="pgrid" id="pgrid"></div>
 </section>
 
-<!-- HUB -->
+<!-- ADVENTURE MAP -->
 <section class="screen" id="scr-hub" hidden>
   <div class="bar">
     <span id="player-slot"></span>
@@ -95,21 +122,16 @@ body{background:#6ab8ff;overscroll-behavior-y:none}
     <div class="sp"></div>
     <span id="music-slot"></span>
   </div>
-  <div class="greet" id="greet"></div>
-  <section class="hero">
-    <div class="copy">
-      <h1 class="ch-title">Cheerful Heart Adventures</h1>
-    </div>
-    <div class="trio" id="trio"></div>
-  </section>
-  <section class="board kg-panel">
-    <h2>Pick an adventure</h2>
-    <div class="grid" id="grid"></div>
-  </section>
-  <div class="grown"><b>For grown-ups:</b> Each game takes about 3 to 5 minutes and practices one skill: counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense. The last game, the Friendship Race, reviews them all. Turn the sound on so the friends can read every instruction aloud. Each player’s stars are saved on this device.</div>
+  <div class="maphead">
+    <div class="greet" id="greet"></div>
+    <div class="friends" id="trio"></div>
+  </div>
+  <h2 class="ch-sr">Adventure map</h2>
+  <div class="map" id="map"></div>
+  <div class="grown"><b>For grown-ups:</b> Each game takes about 3 to 5 minutes and practices one skill: counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense. The last game, the Friendship Race, reviews them all. The first three stops are open; finishing a stop opens the next one. Turn the sound on so the friends can read every instruction aloud. Each player’s stars are saved on this device.</div>
 </section>
 
-<script src="core/store.js"></script>
+<script src="core/config.js"></script><script src="core/store.js"></script>
 <script src="core/voice.js"></script>
 <script src="core/ui.js"></script>
 <script src="core/avatars.js"></script>
@@ -139,6 +161,7 @@ const mb=ui.iconButton({icon:'music',label:'Music on or off',toggle:true,off:!KG
 mb.setAttribute('data-music','');KG.$('#music-slot').appendChild(mb);
 
 /* ---------- routing ---------- */
+if('scrollRestoration' in history)history.scrollRestoration='manual';
 function show(name){Object.entries(scr).forEach(([k,el])=>el.hidden=k!==name);replay.hidden=name==='title';scrollTo(0,0)}
 const entered=()=>{try{return sessionStorage.getItem('ch-in')==='1'}catch(e){return false}};
 const markEntered=()=>{try{sessionStorage.setItem('ch-in','1')}catch(e){}};
@@ -212,9 +235,8 @@ function openAdd(){
   nameIn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();m.card.querySelector('.ch-modal__actions .ch-btn:last-child').click()}});
 }
 
-/* ---------- HUB ---------- */
-const TAGC={Counting:'#d9661a',Shapes:'#7a4ee6',Patterns:'#2a6fc4',Comparing:'#1e7f78','Add & subtract':'#d6336c',Measuring:'#2f7d1f',Sorting:'#5530b8',Time:'#b52a5a',Money:'#8a6410',Positions:'#1c4f91','Number sense':'#c0451a',Review:'#6e4322'};
-const C=KG.COLORS;
+/* ---------- ADVENTURE MAP ---------- */
+const CFG=CH.config,C=KG.COLORS;
 const ICON={
   star:KG.starSVG(),
   shapes:`<svg viewBox="0 0 100 100"><g transform="translate(2 40) scale(.5)">${KG.shapeSVG('triangle',C.green).replace(/<\/?svg[^>]*>/g,'')}</g><g transform="translate(48 40) scale(.5)">${KG.shapeSVG('circle',C.red).replace(/<\/?svg[^>]*>/g,'')}</g><g transform="translate(25 0) scale(.5)">${KG.shapeSVG('square',C.blue).replace(/<\/?svg[^>]*>/g,'')}</g></svg>`,
@@ -230,36 +252,128 @@ const ICON={
   dice:KG.diceSVG(5)
 };
 const greet=ui.bubble();KG.$('#greet').appendChild(greet);greet.setCaptions(store.setting('captions'));
-const HI={ali:['Hi! I’m Ali! Let’s learn together!','You’re doing great, friend!','I love counting with you!'],
-  wynea:['Hi! I’m Wynea! Pick an adventure!','Let’s go explore!','I’m ready for an adventure!'],
-  matthew:['Beep boop! I’m Matthew!','My brain meter says math time!','Kaboom! Let’s play!']};
+
+/* tap a friend to say hi — each says a random friendly line */
+const HI={ali:['Hi! I’m Ali! Let’s learn together!','You’re doing great, friend!','I love counting with you!','Being kind is the best!','Let’s take turns and have fun!'],
+  wynea:['Hi! I’m Wynea! Pick an adventure!','Let’s go explore!','I’m ready for an adventure!','Brave explorers try again and again!','Which stop should we visit?'],
+  matthew:['Beep boop! I’m Matthew!','My brain meter says math time!','Kaboom! Let’s play!','I invented a silly dance. Wiggle wiggle!','Numbers are my favorite!']};
 const trio=KG.$('#trio');
 KG.ORDER.forEach(id=>{const b=h('button',{type:'button','aria-label':'Say hi to '+KG.HEROES[id].name,html:`<img src="${KG.HEROES[id].full}" alt="" draggable="false">`});
-  b.onclick=()=>{startAudio();KG.sfx.pop();fx.wave(b);talk(id,KG.pick(HI[id]),null,greet)};trio.appendChild(b)});
+  let last='';b.onclick=()=>{startAudio();KG.sfx.pop();fx.wave(b);let line;do{line=KG.pick(HI[id])}while(line===last&&HI[id].length>1);last=line;talk(id,line,null,greet)};trio.appendChild(b)});
+
+const mapEl=KG.$('#map'),NS='http://www.w3.org/2000/svg';
+let stops=[],player=null,roadSvg=null;
+const isPortrait=()=>innerWidth<700||innerHeight>innerWidth*1.05;
+
+function buildMap(){
+  mapEl.innerHTML='';stops=[];
+  roadSvg=document.createElementNS(NS,'svg');roadSvg.setAttribute('class','road');roadSvg.setAttribute('aria-hidden','true');mapEl.appendChild(roadSvg);
+  const next=CFG.nextStop(player);
+  // stops that opened since this player last saw the map get a "New!" flag and a bounce
+  const seen=(store.getExtra('map')||{}).seen||[];
+  const open=CFG.GAMES.filter(g=>CFG.isUnlocked(g.id,player)).map(g=>g.id);
+  const fresh=seen.length?open.filter(id=>seen.indexOf(id)<0):[];
+  store.setExtra('map',{seen:open});
+  CFG.GAMES.forEach(g=>{
+    const H=CH.HEROES[g.host],isOpen=open.indexOf(g.id)>=0,gs=player.games[g.id]||{},st=gs.bestStars||0,isNext=!!next&&next.id===g.id,isNew=fresh.indexOf(g.id)>=0;
+    const status=!isOpen?'Locked.':gs.completed?`${st} of 3 stars.`:'Not played yet.';
+    const b=h('button',{type:'button',class:'stop'+(isOpen?'':' is-locked')+(isNext?' is-next':'')+(g.finale?' is-finale':'')+(isNew?' ch-bounce':''),
+      'aria-label':`Stop ${g.n}, ${g.place}: ${g.title}. Host: ${H.name}. ${status}${isNext?' Play this one next!':''}`});
+    b.style.setProperty('--ring',H.ring);
+    b.innerHTML=`<span class="disc"><canvas width="96" height="96"></canvas><span class="ic">${ICON[g.icon]}</span>${isOpen?'':`<span class="lock">${ui.ICONS.lock}</span>`}</span><span class="num" aria-hidden="true">${g.n}</span><span class="host" aria-hidden="true"><img src="${H.head}" alt="" draggable="false"></span><span class="lbl" aria-hidden="true">${esc(g.place)}</span>${isNew||isNext?`<span class="flag" aria-hidden="true">${isNew?'New!':'Next!'}</span>`:''}`;
+    if(st){const w=h('span',{class:'st','aria-hidden':'true'});w.appendChild(ui.starRating(st,{size:18}));b.appendChild(w)}
+    KG.drawScene(b.querySelector('canvas'),g.scene,g.index);
+    b.addEventListener('click',()=>tapStop(g,b,isOpen));
+    mapEl.appendChild(ui.pressable(b));stops.push(b);
+  });
+  layout();
+}
+
+/* smooth road through the stop centres (Catmull-Rom -> cubic Bezier) */
+function curve(p){if(p.length<2)return'';let d=`M${p[0][0].toFixed(1)},${p[0][1].toFixed(1)}`;
+  for(let i=0;i<p.length-1;i++){const p0=p[i-1]||p[i],p1=p[i],p2=p[i+1],p3=p[i+2]||p2;
+    d+=` C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`}return d}
+
+function layout(){
+  if(!stops.length||scr.hub.hidden)return;
+  const W=mapEl.clientWidth,n=stops.length;let pts,H,base;
+  if(isPortrait()){
+    // upright phones/tablets: a vertical winding path that scrolls
+    base=Math.max(86,Math.min(132,W*.27));
+    const gap=base*1.62,X=[.24,.58,.78,.5,.22,.42,.76,.62,.28,.3,.66];
+    pts=stops.map((_,i)=>[(i===n-1?.5:X[i%X.length])*W,base*.95+i*gap+(i===n-1?base*.25:0)]);
+    H=pts[n-1][1]+base*1.25;
+  }else{
+    // landscape: a wide snake that fits the screen (2 rows on very wide screens, else 3)
+    const top=mapEl.getBoundingClientRect().top+scrollY;
+    const avail=Math.max(360,innerHeight-top-18);
+    const rows=(W/avail>2.4||innerHeight<520)?2:3,per=Math.ceil(n/rows),cw=W/per,chh=avail/rows;
+    base=Math.max(74,Math.min(140,cw*.5,chh*.52));
+    pts=stops.map((_,i)=>{const r=Math.floor(i/per),c=i%per,cc=r%2?per-1-c:c;return[(cc+.5)*cw,(r+.4)*chh+(c%2?1:-1)*chh*.06]});
+    H=avail;
+  }
+  mapEl.style.height=H+'px';mapEl.style.setProperty('--base',base+'px');
+  stops.forEach((b,i)=>{const s=b.classList.contains('is-finale')?base*1.3:base;b.style.setProperty('--s',s+'px');b.style.left=pts[i][0]+'px';b.style.top=pts[i][1]+'px'});
+  roadSvg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const d=curve(pts);
+  let lastDone=-1;CFG.GAMES.forEach((g,i)=>{if(CFG.isCompleted(player,g.id))lastDone=i});
+  const dd=lastDone>0?curve(pts.slice(0,lastDone+1)):'';
+  roadSvg.innerHTML=`<path class="edge" d="${d}" stroke-width="${base*.44}"/><path class="sand" d="${d}" stroke-width="${base*.32}"/>${dd?`<path class="done" d="${dd}" stroke-width="${base*.14}"/>`:''}<path class="dash" d="${d}" stroke-width="${base*.06}"/>`;
+}
+let rT=0;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(layout,120)});
+
+function tapStop(g,b,isOpen){
+  startAudio();
+  if(!isOpen){
+    KG.sfx.tap();fx.wobble(b.querySelector('.disc'));
+    const nx=CFG.nextStop(player);
+    if(g.finale)talk(g.host,'The big race opens when you finish all the other adventures! You can do it!',null,greet);
+    else if(nx)talk(nx.host,`This stop is still locked. Let’s go to <b>${esc(nx.place)}</b> first!`,null,greet);
+    if(nx&&!g.finale){const el=stops[nx.index];if(isPortrait())el.scrollIntoView({block:'center',behavior:ui.motion.reduced()?'auto':'smooth'});const rm=fx.pointAt(el.querySelector('.disc'));setTimeout(rm,3200)}
+    return;
+  }
+  KG.sfx.pop();fx.bounce(b.querySelector('.disc'));openIntro(g);
+}
+
+/* the host introduces their stop, with voice */
+function openIntro(g){
+  const H=CH.HEROES[g.host],gs=player.games[g.id]||{};
+  const body=h('div',{class:'intro-card'});body.style.setProperty('--ring',H.ring);
+  const hb=h('button',{type:'button',class:'hostimg','aria-label':`Hear ${H.name} again`,html:`<img src="${H.full}" alt="${H.name}" draggable="false">`});
+  const sayIt=()=>{lastLine={who:g.host,html:g.intro};voice.speak(g.intro,{who:g.host})};
+  hb.onclick=()=>{fx.wave(hb);sayIt()};
+  const txt=h('div',{class:'txt'},[h('div',{class:'place',text:`Stop ${g.n} · ${g.place} · with ${H.name}`}),h('div',{class:'gt',text:g.title}),h('div',{class:'say',text:g.intro})]);
+  if(gs.completed)txt.appendChild(ui.starRating(gs.bestStars,{size:34,label:`Best: ${gs.bestStars} of 3 stars`}));
+  body.append(hb,txt);
+  ui.modal({ariaLabel:g.title,body,initialFocus:'.ch-modal__actions .ch-btn:last-child',onClose:()=>voice.cancel(),actions:[
+    {label:'Map',variant:'paper',icon:'map',ariaLabel:'Back to the map'},
+    {label:gs.completed?'Play again':'Play!',variant:'gold',icon:'play',onClick:()=>{KG.sfx.pop();location.href=g.file;return false}}]});
+  fx.wave(hb);sayIt();
+}
 
 function goHub(doGreet){
   const p=store.activePlayer();if(!p){goWho();return}
-  show('hub');
+  player=p;show('hub');
   const slot=KG.$('#player-slot');slot.innerHTML='';
   const pb=h('button',{type:'button',class:'ch-player','aria-label':`Playing as ${p.name}. Tap to switch player.`,html:`<span class="pic">${CH.avatarSVG(p.avatar)}</span><span class="nm">${esc(p.name)}</span>`});
   pb.onclick=()=>{startAudio();KG.sfx.pop();goWho()};slot.appendChild(ui.pressable(pb));
-  const games=p.games||{};
-  const total=KG.GAMES.reduce((a,g)=>a+((games[g.id]||{}).bestStars||0),0),done=KG.GAMES.filter(g=>(games[g.id]||{}).completed).length;
-  KG.$('#prog').innerHTML=`${KG.starSVG()} ${total} stars · ${done} of 12 played`;
-  const grid=KG.$('#grid');grid.innerHTML='';
-  KG.GAMES.forEach((g,i)=>{const st=(games[g.id]||{}).bestStars||0;const a=KG.el('a','game');a.href=g.file;a.setAttribute('aria-label',`${i+1}. ${g.title}. ${g.skill}. ${st} of 3 stars.`);
-    a.innerHTML=`<div class="thumb"><canvas width="160" height="90"></canvas><div class="ic">${ICON[g.icon]}</div><div class="no">${i+1}</div>${st?'<div class="won"></div>':''}</div><div class="info"><span class="chip" style="--c:${TAGC[g.tag]}">${g.tag}</span><span class="t">${g.title}</span><span class="s">${g.skill}</span></div>`;
-    if(st)a.querySelector('.won').appendChild(ui.starRating(st,{size:18}));
-    KG.drawScene(a.querySelector('canvas'),g.scene,i);
-    a.addEventListener('click',()=>{KG.ensureAudio();KG.sfx.pop()});grid.appendChild(a)});
+  const total=CFG.GAMES.reduce((a,g)=>a+((p.games[g.id]||{}).bestStars||0),0),done=CFG.GAMES.filter(g=>CFG.isCompleted(p,g.id)).length;
+  KG.$('#prog').innerHTML=`${KG.starSVG()} ${total} · ${done}<span class="long"> of 12 stops</span><span aria-hidden="true" class="short">/12</span>`;
+  KG.$('#prog').setAttribute('aria-label',`${total} stars. ${done} of 12 stops finished.`);
+  buildMap();
+  const nx=CFG.nextStop(p);
+  if(isPortrait()&&nx&&nx.index>1){const go=()=>{if(scrollY<40&&stops[nx.index])stops[nx.index].scrollIntoView({block:'center'})};requestAnimationFrame(go);setTimeout(go,350)}
   if(doGreet){
     const who=KG.pick(KG.ORDER),n=esc(p.name),s=voice.speakName(p);
     const L={ali:[`Hi, <b>${n}</b>! Ready for an adventure?`,`Hi, ${s}! Ready for an adventure?`],
       wynea:[`Hooray, <b>${n}</b> is here! Let’s explore!`,`Hooray, ${s} is here! Let’s explore!`],
       matthew:[`Beep boop! Hello, <b>${n}</b>! Let’s do some math!`,`Beep boop! Hello, ${s}! Let’s do some math!`]}[who];
     talk(who,L[0],L[1],greet);
-    const btn=trio.children[KG.ORDER.indexOf(who)];fx.cheer(btn);fx.confetti(2200);
-  }else{greet.say('wynea',`Welcome back, <b>${esc(p.name)}</b>! Pick an adventure!`,{speak:false});lastLine={who:'wynea',html:`Welcome back, ${p.name}! Pick an adventure!`,spoken:`Welcome back, ${voice.speakName(p)}! Pick an adventure!`}}
+    fx.cheer(trio.children[KG.ORDER.indexOf(who)]);fx.confetti(2200);
+  }else{
+    const who=nx?nx.host:'wynea',line=nx?`Welcome back, <b>${esc(p.name)}</b>! Next stop: <b>${esc(nx.place)}</b>!`:`Welcome back, <b>${esc(p.name)}</b>! Pick an adventure!`;
+    greet.say(who,line,{speak:false});lastLine={who,html:line,spoken:line.replace(esc(p.name),voice.speakName(p))};
+  }
 }
 
 /* keep the hub fresh if another tab (e.g. Grown-ups' Corner) changes data */

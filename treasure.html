@@ -17,7 +17,7 @@
 .same span{font-size:.32em;display:block;font-family:var(--body);font-weight:700;color:var(--ink)}
 .spacer{width:clamp(20px,5vw,40px)}
 </style><link rel="stylesheet" href="css/theme.css"></head><body>
-<script src="core/store.js"></script><script src="core/voice.js"></script><script src="core/ui.js"></script><script src="core/avatars.js"></script><script src="shared.js"></script>
+<script src="core/config.js"></script><script src="core/store.js"></script><script src="core/voice.js"></script><script src="core/ui.js"></script><script src="core/avatars.js"></script><script src="shared.js"></script>
 <script>
 const Q=['more','fewer','more','same','fewer','more','fewer','same','more','fewer'];
 function counts(i,q){if(q==='same'){const n=KG.rnd(2,i<5?6:9);return[n,n]}const diff=i<4?KG.rnd(3,5):i<7?KG.rnd(2,3):1;const lo=KG.rnd(1,Math.max(1,10-diff-(i<4?2:0)));const pair=[lo,lo+diff];return KG.shuffle(pair)}
