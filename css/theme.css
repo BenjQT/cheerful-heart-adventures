@@ -146,10 +146,10 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 .ch-bubble__txt{font-weight:600;font-size:var(--fs-md);line-height:1.25}
 .ch-bubble__txt b{color:var(--heart-d)}
 .ch-bubble.is-captions-off .ch-bubble__txt{display:none}
-/* captions off (Grown-ups' Corner): only when a voice really speaks. The text stays
+/* captions off (Grown-ups' Corner): only when a voice really speaks and sound is on. The text stays
    readable for screen readers; children see a little music sign instead. */
-html[data-captions="off"][data-voice="ok"] :is(.ch-bubble__txt,.kg-bubble .txt,.bubble .txt){position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-html[data-captions="off"][data-voice="ok"] :is(.ch-bubble__say,.kg-bubble .say,.bubble .say)::after{content:"♪ ♪ ♪";font-size:1.4rem;color:var(--ring,var(--heart))}
+html[data-captions="off"][data-voice="ok"]:not([data-sound="off"]) :is(.ch-bubble__txt,.kg-bubble .txt,.bubble .txt){position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html[data-captions="off"][data-voice="ok"]:not([data-sound="off"]) :is(.ch-bubble__say,.kg-bubble .say,.bubble .say)::after{content:"♪ ♪ ♪";font-size:1.4rem;color:var(--ring,var(--heart))}
 .ch-bubble.is-captions-off .ch-bubble__say::after{content:"♪ ♪ ♪";font-size:var(--fs-lg);color:var(--ring)}
 .ch-bubble.is-talking .ch-bubble__face{animation:ch-talk .32s ease-in-out infinite}
 

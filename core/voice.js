@@ -85,6 +85,17 @@
     unlocked = true;
     try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); } catch (e) {}
   }
+  /* Browsers only allow speech after the child has tapped this page. A line asked for
+     before that is kept, and said on the first tap (unless that tap starts a new line). */
+  const tapped = () => unlocked || !!(navigator.userActivation && navigator.userActivation.hasBeenActive);
+  let pending = null;
+  function onFirstGesture() {
+    unlock();
+    ['pointerdown', 'keydown', 'touchend'].forEach(t => removeEventListener(t, onFirstGesture, true));
+    const p = pending; pending = null;
+    if (p) setTimeout(() => { if (!speakingNow && !(synth && synth.speaking)) speak(p.text, p.o); }, 150);
+  }
+  ['pointerdown', 'keydown', 'touchend'].forEach(t => addEventListener(t, onFirstGesture, true));
 
   /**
    * speak(text, {who, rate, queue, onstart, onend})
@@ -95,6 +106,8 @@
     o = o || {};
     const plain = String(text == null ? '' : text).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
     if (!plain || !synth || setting('sound', true) === false) { o.onstart && o.onstart(); o.onend && o.onend(); return Promise.resolve(false); }
+    pending = null;
+    if (!tapped()) { pending = { text, o: Object.assign({}, o, { onstart: null, onend: null }) }; o.onstart && o.onstart(); o.onend && o.onend(); return Promise.resolve(false); }
     const st = STYLE[o.who] || STYLE.narrator;
     const base = setting('voiceRate', 0.9);
     const spoken = pronounce(plain);
@@ -135,6 +148,8 @@
     get supported() { return !!synth; },
     /** true once at least one English-capable voice is known */
     get available() { return !!synth && voicesLoaded && !!voiceF; },
-    get speaking() { return speakingNow; }
+    get speaking() { return speakingNow; },
+    /** true once speech is allowed on this page (after the first tap) */
+    get unlocked() { return tapped(); }
   };
 })();

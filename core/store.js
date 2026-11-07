@@ -345,6 +345,7 @@
     const de = document.documentElement, s = state.settings;
     if (s.reducedMotion) de.dataset.motion = 'reduce'; else delete de.dataset.motion;
     de.dataset.captions = s.captions === false ? 'off' : 'on';
+    de.dataset.sound = s.sound === false ? 'off' : 'on';
   }
   applyDocAttrs();
   listeners.push(t => { if (t === 'settings' || t === 'external') applyDocAttrs(); });

@@ -501,9 +501,9 @@ let actx=null,sfxGain,musGain,musicOn=prog.music,soundOn=true,nextNote=0,step=0,
 function readAudioSettings(){if(!(window.CH&&CH.store))return;const s=CH.store.settings();if(s.music>0)musicVol=s.music;musicOn=s.music>0;soundOn=s.sound!==false}
 readAudioSettings();
 const musLevel=()=>musicOn?.32*musicVol:0;
-function applyAudioSettings(){readAudioSettings();if(actx){musGain.gain.setTargetAtTime(musLevel(),actx.currentTime,.2);sfxGain.gain.setTargetAtTime(soundOn?.55:0,actx.currentTime,.05)}const mb=document.getElementById('musicBtn');if(mb)mb.classList.toggle('off',!musicOn)}
+function applyAudioSettings(){readAudioSettings();if(actx){musGain.gain.setTargetAtTime(musLevel(),actx.currentTime,.2);sfxGain.gain.cancelScheduledValues(actx.currentTime);sfxGain.gain.setValueAtTime(soundOn?.55:0,actx.currentTime)}const mb=document.getElementById('musicBtn');if(mb)mb.classList.toggle('off',!musicOn)}
 if(window.CH&&CH.store)CH.store.onChange(t=>{if(t==='settings'||t==='external')applyAudioSettings()});
-function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();const master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=soundOn?.55:0;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musLevel();musGain.connect(master);nextNote=actx.currentTime+.1;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;if(speechOK){try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}}catch(e){actx=null}}else if(actx.state==='suspended')actx.resume()}
+function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();const master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=soundOn?.55:0;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musLevel();musGain.connect(master);nextNote=actx.currentTime+.1;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;if(window.CH&&CH.voice)CH.voice.unlock();}catch(e){actx=null}}else if(actx.state==='suspended')actx.resume()}
 function tone(f,dur,o={}){if(!actx)return;const{type='sine',g=.25,when=0,dest=sfxGain,attack=.012,slide=0}=o;const t=actx.currentTime+when;const os=actx.createOscillator(),a=actx.createGain();os.type=type;os.frequency.setValueAtTime(f,t);if(slide)os.frequency.exponentialRampToValueAtTime(f*slide,t+dur);a.gain.setValueAtTime(.0001,t);a.gain.exponentialRampToValueAtTime(g,t+attack);a.gain.exponentialRampToValueAtTime(.0001,t+dur);os.connect(a);a.connect(dest);os.start(t);os.stop(t+dur+.05)}
 const PENTA=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5,1567.98,1760,2093];
 let nbuf=null;function nbf(){if(!nbuf&&actx){nbuf=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}return nbuf}
@@ -529,28 +529,15 @@ function musicTick(){if(!actx)return;while(nextNote<actx.currentTime+.4){const w
 setInterval(musicTick,120);
 function setMusic(on){if(window.CH&&CH.store){CH.store.setSettings({music:on?(musicVol||.5):0});return}musicOn=on;prog.music=on;saveProg();if(musGain)musGain.gain.setTargetAtTime(on?.16:0,actx.currentTime,.2);$('#musicBtn').classList.toggle('off',!on)}
 
-/* ---------- speech ---------- */
-let voice=null,voiceM=null;const speechOK='speechSynthesis' in window;
-function pickVoice(){if(!speechOK)return;const vs=speechSynthesis.getVoices();voice=vs.find(v=>/^en[-_]/i.test(v.lang)&&/samantha|aria|jenny|zira|google us english|female|karen|moira/i.test(v.name))||vs.find(v=>/^en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;voiceM=vs.find(v=>/^en/i.test(v.lang)&&/(\bmale\b|daniel|alex|fred|david|mark|guy|aaron|arthur|rishi)/i.test(v.name))||voice;voice=vs.find(v=>/^en/i.test(v.lang)&&/princess|ivy|child|kid/i.test(v.name))||voice;voiceM=vs.find(v=>/^en/i.test(v.lang)&&/junior|justin|boy/i.test(v.name))||voiceM;}
-if(speechOK){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-let duckTimer=0,speakTimer=0;
-const VSTYLE={wynea:{p:1.78,r:1.1},ali:{p:1.9,r:1.06},matthew:{p:1.6,r:1.12}};
-function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?musLevel()*.45:musLevel(),actx.currentTime,.12)}
+/* ---------- speech ----------
+   All speech goes through CH.voice (core/voice.js) — one pronunciation dictionary
+   (Wynea → "Wee-neh-yah"), one voice and speed setting. Music dips while anyone talks. */
+function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?musLevel()*.4:musLevel(),actx.currentTime,on?.08:.35)}
+if(window.CH&&CH.voice){CH.voice.on('start',()=>duck(true));CH.voice.on('end',()=>duck(false))}
 function say(text,queue,onstart,who){
-  who=who||leaderId;if(!soundOn){onstart&&onstart();return}
-  if(window.CH&&CH.voice){CH.voice.speak(text,{who,queue:!!queue,onstart});return}
-  if(!speechOK){onstart&&onstart();return}
-  const st=VSTYLE[who]||VSTYLE.wynea,parts=(text.match(/[^.!?]+[.!?]*/g)||[text]).map(x=>x.trim()).filter(Boolean);
-  const go=()=>{try{if(!queue)speechSynthesis.cancel();
-    parts.forEach((ph,i)=>{const u=new SpeechSynthesisUtterance(ph.replace(/Wynea/gi,'Wee-neh-yah')/* fallback only: used if core/voice.js is missing */),v=who==='matthew'?voiceM:voice;if(v)u.voice=v;
-      const ex=/!$/.test(ph),q=/\?$/.test(ph),num=/\d/.test(ph),short=ph.length<9;
-      u.pitch=Math.min(2,st.p+(ex?.16:0)+(q?.22:0)+(num?.1:0)+(Math.random()-.5)*.1);
-      u.rate=Math.min(1.4,st.r+(ex?.07:0)+(short?.06:0));
-      if(i===0)u.onstart=()=>{duck(true);onstart&&onstart()};
-      if(i===parts.length-1)u.onend=u.onerror=()=>duck(false);
-      speechSynthesis.speak(u)});
-    clearTimeout(duckTimer);duckTimer=setTimeout(()=>duck(false),10000)}catch(e){onstart&&onstart()}};
-  if(queue)go();else{clearTimeout(speakTimer);speakTimer=setTimeout(go,Math.max(0,secToNext(2)-SPEECH_LAG)*1000)}
+  who=who||leaderId;
+  if(!soundOn||!(window.CH&&CH.voice)){onstart&&onstart();return}
+  CH.voice.speak(text,{who,queue:!!queue,onstart});
 }
 function talk(who,text){bubble(who,text);say(text,false,null,who);const h=heroes[who];if(h)h.talk=text.split(' ').length*.34+.8}
 
@@ -671,7 +658,7 @@ function showWin(){
 }
 function goTitle(){
   saveEarly();
-  winTimers.forEach(clearTimeout);winTimers=[];if(speechOK)speechSynthesis.cancel();
+  winTimers.forEach(clearTimeout);winTimers=[];if(window.CH&&CH.voice)CH.voice.cancel();
   state='title';$('#hud').hidden=true;$('#win').hidden=true;$('#title').hidden=false;
   const defs=buildWorld({seq:[],seed:5});applyTheme('morning');spawnStars(defs);placeHeroes();fitCamera();
   if(confetti){scene.remove(confetti.mesh);confetti=null}
@@ -706,6 +693,8 @@ canvas.addEventListener('pointerdown',e=>{
 $('#homeBtn').onclick=()=>{sfx.pop();goTitle()};
 $('#repeatBtn').onclick=()=>{ensureAudio();if(state!=='play')return;const n=curTarget();if(n===undefined)return;hint()};
 $('#musicBtn').onclick=()=>{ensureAudio();setMusic(!musicOn)};
+/* sound may only start after a tap: the first tap anywhere wakes the audio */
+(function(){const first=()=>{ensureAudio();['pointerdown','keydown'].forEach(t=>removeEventListener(t,first,true))};['pointerdown','keydown'].forEach(t=>addEventListener(t,first,true))})();
 $('#nextBtn').onclick=()=>{sfx.pop();if(levelIdx<LEVELS.length-1)startLevel(levelIdx+1);else goTitle()};
 $('#againBtn').onclick=()=>{sfx.pop();startLevel(levelIdx)};
 $('#menuBtn').onclick=()=>{sfx.pop();goTitle()};

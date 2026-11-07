@@ -213,7 +213,7 @@ KG.secToNext=function(div){if(!actx)return 0;const span=beatLen()/(div||1),now=a
 KG.ensureAudio=function(){
   if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=soundOn?SFX:0;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musLevel();musGain.connect(master);
     nextNote=actx.currentTime+.12;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;
-    if(speechOK){try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}}catch(e){actx=null}}
+    if(window.CH&&CH.voice)CH.voice.unlock()}catch(e){actx=null}}
   else if(actx.state==='suspended')actx.resume();
 };
 function tone(f,dur,o){if(!actx)return;o=o||{};const type=o.type||'sine',g=o.g==null?.25:o.g,when=o.when||0,dest=o.dest||sfxGain,attack=o.attack||.012,slide=o.slide||0;const t=actx.currentTime+when;const os=actx.createOscillator(),a=actx.createGain();os.type=type;os.frequency.setValueAtTime(f,t);if(slide)os.frequency.exponentialRampToValueAtTime(f*slide,t+dur);a.gain.setValueAtTime(.0001,t);a.gain.exponentialRampToValueAtTime(g,t+attack);a.gain.exponentialRampToValueAtTime(.0001,t+dur);os.connect(a);a.connect(dest);os.start(t);os.stop(t+dur+.05)}
@@ -260,34 +260,26 @@ KG.startAmbient=function(){if(!actx||ambGain)return;ambGain=actx.createGain();am
   const chime=()=>{const w=KG.secToNext(1);[1046.5,1318.5,1568].forEach((f,k)=>tone(f,1.4,{g:.025,when:w+k*beatLen()/2,dest:ambGain,attack:.02}));setTimeout(chime,9000+Math.random()*7000)};
   setTimeout(chime,5000)};
 /* apply settings now (called when Grown-ups' Corner changes them, also from another tab) */
-KG.applyAudioSettings=function(){readAudioSettings();if(actx){musGain.gain.setTargetAtTime(musLevel(),actx.currentTime,.2);sfxGain.gain.setTargetAtTime(soundOn?SFX:0,actx.currentTime,.05);if(ambGain)ambGain.gain.setTargetAtTime(musicOn?Math.min(1,musicVol*2):0,actx.currentTime,.3)}document.querySelectorAll('[data-music]').forEach(b=>{b.classList.toggle('off',!musicOn);b.classList.toggle('is-off',!musicOn);b.setAttribute('aria-pressed',String(musicOn))})};
+KG.applyAudioSettings=function(){readAudioSettings();if(actx){musGain.gain.setTargetAtTime(musLevel(),actx.currentTime,.2);sfxGain.gain.cancelScheduledValues(actx.currentTime);sfxGain.gain.setValueAtTime(soundOn?SFX:0,actx.currentTime);if(ambGain)ambGain.gain.setTargetAtTime(musicOn?Math.min(1,musicVol*2):0,actx.currentTime,.3)}document.querySelectorAll('[data-music]').forEach(b=>{b.classList.toggle('off',!musicOn);b.classList.toggle('is-off',!musicOn);b.setAttribute('aria-pressed',String(musicOn))})};
 if(window.CH&&CH.store)CH.store.onChange(t=>{if(t==='settings'||t==='external')KG.applyAudioSettings()});
 /* the music button toggles between off and the last volume */
 KG.setMusic=function(on){if(window.CH&&CH.store){CH.store.setSettings({music:on?(musicVol||.5):0});return}musicOn=on;KG.prog.music=on;KG.save();if(musGain)musGain.gain.setTargetAtTime(on?.16:0,actx.currentTime,.2);if(ambGain)ambGain.gain.setTargetAtTime(on?1:0,actx.currentTime,.3);document.querySelectorAll('[data-music]').forEach(b=>b.classList.toggle('off',!on))};
 
-/* ---------------- speech ---------------- */
-const speechOK='speechSynthesis' in window;let voice=null,voiceM=null;
-function pickVoice(){if(!speechOK)return;const vs=speechSynthesis.getVoices();voice=vs.find(v=>/^en[-_]/i.test(v.lang)&&/samantha|aria|jenny|zira|google us english|female|karen|moira/i.test(v.name))||vs.find(v=>/^en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;voiceM=vs.find(v=>/^en/i.test(v.lang)&&/(\bmale\b|daniel|alex|fred|david|mark|guy|aaron|arthur|rishi)/i.test(v.name))||voice;voice=vs.find(v=>/^en/i.test(v.lang)&&/princess|ivy|child|kid/i.test(v.name))||voice;voiceM=vs.find(v=>/^en/i.test(v.lang)&&/junior|justin|boy/i.test(v.name))||voiceM;}
-if(speechOK){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-let duckTimer=0,speakTimer=0;const SPEECH_LAG=.09;
-function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?musLevel()*.45:musLevel(),actx.currentTime,.12)}
-/* All speech goes through CH.voice (core/voice.js): one voice picker, one pronunciation dictionary. */
+/* ---------------- speech ----------------
+   Every spoken line goes through CH.voice (core/voice.js): one voice picker, one
+   pronunciation dictionary (Wynea is spoken "Wee-neh-yah"), one speed setting.
+   While anyone speaks, the music dips so the words are easy to hear. */
+function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?musLevel()*.4:musLevel(),actx.currentTime,on?.08:.35)}
 if(window.CH&&CH.voice){CH.voice.on('start',()=>duck(true));CH.voice.on('end',()=>duck(false))}
-KG.say=function(text,who,opt){opt=opt||{};who=who||'wynea';const plain=text.replace(/<[^>]+>/g,'');
-  if(window.CH&&CH.voice){CH.voice.speak(plain,{who,queue:!!opt.queue,rate:1+(opt.rate||0),onstart:opt.onstart});return}
-  if(!speechOK){opt.onstart&&opt.onstart();return}
-  const st=HEROES[who]||HEROES.wynea,parts=(plain.match(/[^.!?]+[.!?]*/g)||[plain]).map(x=>x.trim()).filter(Boolean);
-  const go=()=>{try{if(!opt.queue)speechSynthesis.cancel();
-    parts.forEach((ph,i)=>{const u=new SpeechSynthesisUtterance(ph.replace(/Wynea/gi,'Wee-neh-yah')),v=who==='matthew'?voiceM:voice;if(v)u.voice=v;/* fallback only: used if core/voice.js is missing */
-      const ex=/!$/.test(ph),q=/\?$/.test(ph),num=/\d/.test(ph),short=ph.length<9;
-      u.pitch=Math.min(2,st.p+(ex?.16:0)+(q?.22:0)+(num?.1:0)+(Math.random()-.5)*.1);u.rate=Math.min(1.4,st.r+(ex?.07:0)+(short?.06:0)+(opt.rate||0));
-      if(i===0)u.onstart=()=>{duck(true);opt.onstart&&opt.onstart()};
-      if(i===parts.length-1)u.onend=u.onerror=()=>duck(false);
-      speechSynthesis.speak(u)});
-    clearTimeout(duckTimer);duckTimer=setTimeout(()=>duck(false),10000)}catch(e){opt.onstart&&opt.onstart()}};
-  if(opt.queue||opt.now)go();else{clearTimeout(speakTimer);speakTimer=setTimeout(go,Math.max(0,KG.secToNext(2)-SPEECH_LAG)*1000)}
+/* read-only levels for testing (tests/ and the QA checklist) */
+KG.audioLevels=()=>({ctx:actx?actx.state:'none',music:musGain?+musGain.gain.value.toFixed(3):null,sfx:sfxGain?+sfxGain.gain.value.toFixed(3):null,musicOn,soundOn});
+KG.say=function(text,who,opt){opt=opt||{};who=who||'wynea';
+  if(!(window.CH&&CH.voice)){opt.onstart&&opt.onstart();return}   // no voice module: captions carry the words
+  CH.voice.speak(String(text),{who,queue:!!opt.queue,rate:1+(opt.rate||0),onstart:opt.onstart});
 };
-KG.stopSpeech=()=>{clearTimeout(speakTimer);if(window.CH&&CH.voice)CH.voice.cancel();else if(speechOK)speechSynthesis.cancel()};
+KG.stopSpeech=()=>{if(window.CH&&CH.voice)CH.voice.cancel()};
+/* sound may only start after a tap: the first tap anywhere wakes the audio */
+(function(){const first=()=>{KG.ensureAudio();['pointerdown','keydown'].forEach(t=>removeEventListener(t,first,true))};['pointerdown','keydown'].forEach(t=>addEventListener(t,first,true))})();
 
 /* ---------------- beat loop ---------------- */
 (function loop(){const k=Math.pow(1-KG.beatPhase(),3);document.documentElement.style.setProperty('--kick',k.toFixed(3));requestAnimationFrame(loop)})();
