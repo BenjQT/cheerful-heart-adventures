@@ -37,7 +37,7 @@
 </style><link rel="stylesheet" href="css/theme.css"></head><body>
 <script src="core/config.js"></script><script src="core/store.js"></script><script src="core/voice.js"></script><script src="core/ui.js"></script><script src="core/avatars.js"></script><script src="shared.js"></script>
 <script>
-const CH=[4,8,12,16];
+const CHAL=[4,8,12,16]; // star-challenge squares (not window.CH)
 const hatSVG='<svg viewBox="0 0 100 100"><path d="M50 4 76 70H24z" fill="#7b4fd6" stroke="#3a1f7a" stroke-width="5" stroke-linejoin="round"/><ellipse cx="50" cy="74" rx="44" ry="12" fill="#7b4fd6" stroke="#3a1f7a" stroke-width="5"/><path d="M44 30l4-8 4 8 8 1-6 6 2 8-8-4-8 4 2-8-6-6z" fill="#ffd23f"/><circle cx="38" cy="86" r="5" fill="#fff"/><circle cx="62" cy="86" r="5" fill="#fff"/><circle cx="38" cy="86" r="2.5" fill="#2a1f3d"/><circle cx="62" cy="86" r="2.5" fill="#2a1f3d"/><path d="M42 96q8-6 16 0" stroke="#2a1f3d" stroke-width="3" fill="none"/></svg>';
 function cellIndex(p){const r=Math.floor(p/7),c=p%7;const col=r%2===0?c:6-c;return(2-r)*7+col}
 KG.game({id:'race',title:'The Great Friendship Race',tag:'Review',scene:'track',song:'march',rounds:5,
@@ -51,7 +51,7 @@ KG.game({id:'race',title:'The Great Friendship Race',tag:'Review',scene:'track',
     const cells=[];for(let k=0;k<21;k++)cells.push(null);
     for(let v=0;v<21;v++){}
     const order=[];for(let p=0;p<21;p++)order[cellIndex(p)]=p;
-    order.forEach(p=>{const c=KG.el('div','cell'+(CH.includes(p)?' ch':'')+(p===0?' start':'')+(p===20?' fin':''),p===0?'START':p===20?'END':CH.includes(p)?KG.starSVG():String(p));cells[p]=c;board.appendChild(c)});
+    order.forEach(p=>{const c=KG.el('div','cell'+(CHAL.includes(p)?' ch':'')+(p===0?' start':'')+(p===20?' fin':''),p===0?'START':p===20?'END':CHAL.includes(p)?KG.starSVG():String(p));cells[p]=c;board.appendChild(c)});
     const team=KG.el('div','tok team',KG.ORDER.map(id=>`<img src="${KG.HEROES[id].head}" alt="">`).join(''));const wiz=KG.el('div','tok',hatSVG);board.appendChild(wiz);board.appendChild(team);
     let tp=0,wp=0,done=[],state='roll',roll=0,turn=0;
     function place(tok,p,off){const c=cells[p];const s=c.offsetWidth;tok.style.width=s*(tok===team?1.1:.7)+'px';tok.style.height=s*.7+'px';tok.style.left=c.offsetLeft+(tok===team?-s*.05:s*.3)+'px';tok.style.top=c.offsetTop+(tok===team?-s*.2:s*.35)+'px'}
@@ -69,13 +69,13 @@ KG.game({id:'race',title:'The Great Friendship Race',tag:'Review',scene:'track',
     function move(tok,n,cb){const isTeam=tok===team;const steps=Math.min(n,20-(isTeam?tp:wp));if(steps<=0){cb();return}
       const total=api.beats(steps,k=>{if(isTeam)tp++;else wp++;place(tok,isTeam?tp:wp);tok.classList.remove('hop');void tok.offsetWidth;tok.classList.add('hop');KG.sfx.count(k);if(isTeam)KG.say(String(k+1)+'!',api.hero(turn),{now:true,rate:.15})},1);
       setTimeout(cb,total+250)}
-    function afterTeam(){const pend=CH.filter(c=>c<=tp&&!done.includes(c));if(pend.length){challenge(pend[0],afterTeam);return}
+    function afterTeam(){const pend=CHAL.filter(c=>c<=tp&&!done.includes(c));if(pend.length){challenge(pend[0],afterTeam);return}
       if(tp>=20){api.lock();api.correct({force:true,stay:true,el:team,who:'wynea',line:'We reached the finish line!'});setTimeout(()=>api.next(),1800);return}
       wizardTurn()}
     function wizardTurn(){state='wizard';const r=Math.max(0,Math.min(KG.rnd(1,2),Math.min(18,tp+1)-wp));
       api.talk(api.hero(turn+2),r?`The grumpy wizard moves ${r}. Hurry!`:'The grumpy wizard is too tired to move! Hee hee!');
       setTimeout(()=>move(wiz,r,()=>{turn++;askRoll()}),1400)}
-    function challenge(c,cb){api.lock();done.push(c);cells[c].classList.add('done');const type=CH.indexOf(c);const m=KG.el('div','modal');let html='',ans,opts=[],q;
+    function challenge(c,cb){api.lock();done.push(c);cells[c].classList.add('done');const type=CHAL.indexOf(c);const m=KG.el('div','modal');let html='',ans,opts=[],q;
       if(type===0){const shapes=KG.shuffle(['triangle','circle','square','star','heart']).slice(0,3);ans=shapes[0];q=`Which one is the <b>${ans}</b>?`;opts=KG.shuffle(shapes).map(s=>({v:s,h:KG.shapeSVG(s,KG.pick(Object.values(KG.COLORS)))}))}
       else if(type===1){const a=KG.rnd(2,5),b=a+KG.rnd(2,4);const L=KG.shuffle([a,b]);ans=Math.max(a,b);q='Which group has <b>more</b>?';opts=L.map(v=>({v,h:KG.dotsGrid(v,'#ff5c8d',true)}))}
       else if(type===2){const n=KG.rnd(3,15);ans=n+1;q=`What number comes after <b>${n}</b>?`;html=`<div class="show">${n-1}, ${n}, ?</div>`;const set=new Set([ans]);while(set.size<3)set.add(ans+KG.pick([-2,-1,1,2]));opts=KG.shuffle([...set]).map(v=>({v,h:String(v)}))}

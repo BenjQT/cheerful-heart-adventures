@@ -64,16 +64,17 @@ button:focus-visible,a:focus-visible{outline:4px solid #fff;outline-offset:3px;b
 .kg-btn{display:inline-flex;align-items:center;justify-content:center;gap:.4em;font-family:var(--display);font-size:clamp(1.05rem,3.6vw,1.35rem);letter-spacing:.02em;color:#fff;border:0;border-radius:12px;padding:.55em 1.15em .65em;background:var(--leaf);text-decoration:none;
  box-shadow:inset 0 -6px 0 var(--leaf-d),inset 0 3px 0 rgba(255,255,255,.35),0 5px 0 rgba(42,31,61,.22);text-shadow:0 2px 0 rgba(0,0,0,.22);transition:transform .08s}
 .kg-btn:active{transform:translateY(3px)}
+.kg-btn svg{width:1.1em;height:1.1em;flex:none}
 .kg-btn.gold{background:var(--gold);color:var(--ink);text-shadow:0 2px 0 rgba(255,255,255,.45);box-shadow:inset 0 -6px 0 var(--gold-d),inset 0 3px 0 rgba(255,255,255,.5),0 5px 0 rgba(42,31,61,.22)}
 .kg-btn.sky{background:var(--sky);box-shadow:inset 0 -6px 0 var(--sky-d),inset 0 3px 0 rgba(255,255,255,.35),0 5px 0 rgba(42,31,61,.22)}
 .kg-btn.big{font-size:clamp(1.4rem,5vw,1.9rem);padding:.5em 1.6em .62em}
-.kg-icon{width:50px;height:50px;flex:none;display:grid;place-items:center;border:0;border-radius:14px;background:var(--cream);color:var(--wood-d);box-shadow:inset 0 -5px 0 #e7cfa6,0 4px 0 rgba(42,31,61,.2);text-decoration:none}
+.kg-icon{width:56px;height:56px;flex:none;display:grid;place-items:center;border:0;border-radius:14px;background:var(--cream);color:var(--wood-d);box-shadow:inset 0 -5px 0 #e7cfa6,0 4px 0 rgba(42,31,61,.2);text-decoration:none}
 .kg-icon:active{transform:translateY(2px)}
 .kg-icon svg{width:27px;height:27px}
 .kg-icon.off{opacity:.55}
 .kg-panel{background:repeating-linear-gradient(180deg,var(--plank) 0 22px,#cf9558 22px 24px);border:4px solid var(--wood-d);border-radius:18px;box-shadow:inset 0 0 0 3px #e9b77f,0 10px 0 rgba(42,31,61,.25),0 18px 40px rgba(42,31,61,.25);padding:14px}
 .kg-paper{background:var(--paper);border-radius:14px;box-shadow:inset 0 -5px 0 #ecdcbf,0 4px 0 rgba(42,31,61,.15)}
-.kg-top{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
+.kg-top{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;align-items:center;gap:clamp(6px,2vw,10px);padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
 .kg-top>*{pointer-events:auto}
 .kg-top .sp{flex:1;pointer-events:none}
 .kg-chip{font-family:var(--display);font-size:clamp(.9rem,3.2vw,1.15rem);color:#fff;background:rgba(42,31,61,.58);padding:.35em .9em;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -92,11 +93,31 @@ button:focus-visible,a:focus-visible{outline:4px solid #fff;outline-offset:3px;b
 .kg-cast img.talk{transform:translateY(calc(var(--kick)*-14px)) rotate(calc((var(--kick) - .35)*5deg))}
 .kg-cast img.cheer{animation:kg-jump .42s ease-in-out infinite}
 @keyframes kg-jump{50%{transform:translateY(-22%) rotate(-4deg)}}
-.kg-pips{position:fixed;z-index:4;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - var(--cast-h)*1.6 - 24px)}
-.kg-pip{width:clamp(20px,5vw,28px);aspect-ratio:1}
-.kg-pip svg{width:100%;height:100%;display:block}
-.kg-pip.now{animation:kg-bob 1s ease-in-out infinite}
 @keyframes kg-bob{50%{transform:translateY(-4px)}}
+.kg-top .kg-chip{flex:0 1 auto}
+@media (max-width:640px){.kg-top .kg-chip{display:none}}
+.kg-dots{display:flex;align-items:center;gap:clamp(2px,.8vw,6px);padding:6px clamp(6px,2vw,10px);flex:0 1 auto;min-width:0;border-radius:999px;background:rgba(42,31,61,.45);pointer-events:none}
+.kg-dot{flex:none;width:clamp(9px,2.6vw,22px);aspect-ratio:1;display:grid;place-items:center}
+.kg-dot svg{width:100%;height:100%;display:block}
+.kg-dot i{width:56%;aspect-ratio:1;border-radius:50%;background:rgba(255,253,246,.75);box-shadow:inset 0 -2px 0 rgba(110,67,34,.35)}
+.kg-dot.now i{width:72%;background:#fff;box-shadow:0 0 0 3px var(--gold)}
+.kg-dot.now{animation:kg-bob 1s ease-in-out infinite}
+.kg-dot.got svg{animation:kg-pop .45s}
+.kg-cast img.think{transform:rotate(-5deg) translateY(2%);transition:transform .4s}
+.kg-hand{position:fixed;z-index:26;pointer-events:none}
+.kg-sticker{display:inline-grid;place-items:center;width:clamp(72px,min(20vw,13vh),104px);aspect-ratio:1;border-radius:50%;background:#fff;box-shadow:0 0 0 5px var(--ring,var(--gold)),0 6px 0 5px rgba(42,31,61,.22);transform:rotate(-8deg)}
+.kg-sticker .in{width:68%;aspect-ratio:1}.kg-sticker .in svg{width:100%;height:100%;overflow:visible}
+.kg-win .got{display:grid;justify-items:center;gap:8px;font-family:var(--display);font-size:1.1rem;color:var(--heart-d)}
+.kg-win .got .kg-sticker{animation:kg-stick .7s .9s cubic-bezier(.2,1.5,.4,1) backwards}
+@keyframes kg-stick{from{transform:scale(2.4) rotate(20deg);opacity:0}}
+@media (max-height:560px){.kg-win .trio{display:none}.kg-win .kg-paper{gap:6px;padding-block:10px}}
+.kg-best{font-family:var(--display);font-size:1.05rem;color:var(--ink);background:var(--gold);padding:.25em .9em;border-radius:999px;box-shadow:inset 0 -3px 0 var(--gold-d);animation:kg-pop .5s 1.2s backwards}
+.kg-win .s3 .ch-stars{--size:clamp(52px,14vw,66px)}
+.kg-bonus{position:fixed;z-index:7;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 16px);width:64px;height:64px;pointer-events:none}
+.kg-bonus circle{fill:none;stroke-width:9}.kg-bonus .bg{stroke:rgba(255,253,246,.7)}.kg-bonus .fg{stroke:var(--gold);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .25s linear}
+.kg-bonus.done{opacity:0;transition:opacity .4s}
+html[data-motion="reduce"] .kg-dot.now,html[data-motion="reduce"] .kg-win .trio img,html[data-motion="reduce"] .kg-cast img.cheer{animation:none!important}
+@media (prefers-reduced-motion:reduce){.kg-dot.now,.kg-win .trio img,.kg-cast img.cheer{animation:none!important}}
 .kg-overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;overflow-y:auto;padding-block:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .kg-overlay.dim{background:rgba(42,31,61,.32)}
 .kg-intro{width:min(560px,100%);display:grid;gap:14px;justify-items:center;text-align:center;animation:kg-rise .5s cubic-bezier(.2,1.4,.4,1)}
@@ -123,27 +144,16 @@ button:focus-visible,a:focus-visible{outline:4px solid #fff;outline-offset:3px;b
 @media (hover:hover){.kg-card:hover{transform:translateY(-3px)}}
 .kg-num{font-family:var(--body);font-weight:700;font-variant-numeric:tabular-nums}
 .shake{animation:kg-shake .45s}
-@keyframes kg-shake{20%{transform:translateX(-10px) rotate(-3deg)}40%{transform:translateX(9px) rotate(3deg)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+@keyframes kg-shake{25%{transform:translateX(-5px) rotate(-2deg)}50%{transform:translateX(5px) rotate(2deg)}75%{transform:translateX(-2px)}}
 .pop{animation:kg-pop .45s}
 @keyframes kg-pop{40%{transform:scale(1.18)}}
 .glow{box-shadow:0 0 0 5px var(--gold),0 0 24px 8px rgba(255,201,60,.8)!important}
 .bob{transform:translateY(calc(var(--kick)*-6px))}
 .kg-spark{position:fixed;z-index:30;pointer-events:none;width:22px;height:22px}
-.kg-cast img.sad{transform:translateY(6%) rotate(-6deg);filter:grayscale(.5) drop-shadow(0 5px 0 rgba(42,31,61,.18));transition:transform .6s,filter .6s}
 .kg-win .res{font-weight:700;font-size:1rem;color:#8a6a4a;font-variant-numeric:tabular-nums}
-.kg-win .trio{display:flex;align-items:flex-end;justify-content:center;height:clamp(90px,16vh,140px);position:relative}
+.kg-win .trio{display:flex;align-items:flex-end;justify-content:center;height:clamp(64px,12vh,130px);position:relative}
 .kg-win .trio img{height:100%;margin:0 -8px;transform-origin:50% 100%}
-.kg-win.high .trio img{animation:kg-jump .42s ease-in-out infinite}.kg-win.high .trio img:nth-child(2){animation-delay:.14s}.kg-win.high .trio img:nth-child(3){animation-delay:.28s}
-.kg-win.mid .trio img{transform:rotate(-4deg) translateY(4%)}.kg-win.mid .trio img:nth-child(2){transform:rotate(4deg) translateY(4%)}
-.kg-win.low .trio img{filter:grayscale(.6) brightness(.9);transform:translateY(8%) rotate(-5deg)}
-.kg-win.mid .kg-paper{background:#eef2fb}.kg-win.mid h2{color:#9fc2ff}
-.kg-win.low{background:repeating-linear-gradient(180deg,#8b97ad 0 22px,#7d899f 22px 24px);border-color:#3e4657;box-shadow:inset 0 0 0 3px #a9b4c8,0 10px 0 rgba(42,31,61,.25)}
-.kg-win.low .kg-paper{background:#e3e8f1;box-shadow:inset 0 -5px 0 #c3ccdb}.kg-win.low h2{color:#c9d6ee;text-shadow:0 3px 0 #3e4657,2px 0 0 #3e4657,-2px 0 0 #3e4657,0 -2px 0 #3e4657}
-.kg-cloud{position:absolute;left:50%;top:-22%;width:62%;transform:translateX(-50%);animation:kg-drift 3s ease-in-out infinite}
-@keyframes kg-drift{50%{transform:translateX(-46%)}}
-.kg-drop{position:absolute;width:5px;height:14px;border-radius:3px;background:#6fb6ff;opacity:.85;animation:kg-fall 1s linear infinite}
-@keyframes kg-fall{from{transform:translateY(0);opacity:.9}to{transform:translateY(120px);opacity:0}}
-.kg-tear{position:absolute;width:10px;height:14px;background:#7ec8ff;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;animation:kg-fall 1.6s ease-in infinite}
+.kg-win .trio img{animation:kg-jump .42s ease-in-out infinite}.kg-win .trio img:nth-child(2){animation-delay:.14s}.kg-win .trio img:nth-child(3){animation-delay:.28s}
 #kg-confetti{position:fixed;inset:0;width:100%;height:100%;z-index:25;pointer-events:none}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 `;
@@ -207,7 +217,7 @@ function wah(f,when,dur,vib){if(!actx)return;const t=actx.currentTime+when,o=act
 const PENTA=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5,1567.98,1760,2093,2349.3];
 KG.sfx={
   correct(k){k=k||0;const f=PENTA[Math.min(PENTA.length-1,k%12)];tone(f,.5,{type:'triangle',g:.28});tone(f*2,.35,{g:.08,when:.05});tone(f*1.5,.45,{type:'triangle',g:.12,when:Math.max(.08,KG.secToNext(2))})},
-  wrong(){tone(330,.22,{g:.2,slide:.6});tone(247,.28,{g:.16,when:.14,slide:.7})},
+  wrong(){tone(392,.14,{type:'triangle',g:.09});tone(440,.18,{type:'triangle',g:.07,when:.11})}, // soft "hmm?" — no buzzer
   pop(){tone(880,.09,{type:'triangle',g:.15,slide:1.6})},
   tap(){tone(660,.06,{type:'triangle',g:.1})},
   coin(){tone(1568,.08,{type:'square',g:.06});tone(2093,.25,{type:'square',g:.06,when:.07})},
@@ -220,8 +230,6 @@ KG.sfx={
     [0,.18,.36,.54].forEach(t=>burst(.2+t,.4,.03,4000,'highpass',.5));tone(1568,.18,{type:'triangle',g:.05,when:.4});tone(2093,.25,{type:'triangle',g:.05,when:.55})},
   firework(when){tone(450,.6,{type:'sine',g:.045,slide:3.4,when});burst(when+.6,1.1,.55,160,'lowpass',.7);burst(when+.6,.25,.25,900,'bandpass',.8);for(let k=0;k<16;k++)burst(when+.75+Math.random()*.8,.02,.12+Math.random()*.1,3500+Math.random()*3500,'bandpass',2)},
   fireworks(n,cb){n=n||5;for(let i=0;i<n;i++){const w=.25+i*.75+Math.random()*.25;KG.sfx.firework(w);cb&&setTimeout(()=>cb(i),(w+.6)*1000)}},
-  sad(){const w=KG.secToNext(1);wah(392,w,.42);wah(370,w+.48,.42);wah(349,w+.96,.42);wah(330,w+1.44,1.3,true)},
-  rain(sec){sec=sec||4;burst(0,sec,.06,1400,'lowpass',.5);for(let i=0;i<sec*14;i++)burst(Math.random()*sec,.02,.05,4000+Math.random()*2000,'bandpass',3);tone(196,1.2,{g:.03,when:.3})},
   fanfare(){const w=KG.secToNext(1),e=beatLen()/2;[523,659,784,1047].forEach((f,i)=>tone(f,.3,{type:'triangle',g:.22,when:w+i*e}));tone(1319,1,{type:'triangle',g:.2,when:w+4*e});tone(784,1,{g:.12,when:w+4*e});tone(659,1,{g:.1,when:w+4*e})}
 };
 KG.setSong=function(name){song=SONGS[name]||SONGS.meadow};
@@ -352,21 +360,47 @@ KG.fly=function(from,to,html,dur){return new Promise(res=>{const a=from.getBound
 KG.cubeSVG=c=>`<svg viewBox="0 0 100 100"><path d="M50 6 92 27 50 48 8 27z" fill="${shade(c,45)}" stroke="${shade(c,-80)}" stroke-width="3" stroke-linejoin="round"/><path d="M8 27 50 48 50 95 8 74z" fill="${c}" stroke="${shade(c,-80)}" stroke-width="3" stroke-linejoin="round"/><path d="M92 27 50 48 50 95 92 74z" fill="${shade(c,-38)}" stroke="${shade(c,-80)}" stroke-width="3" stroke-linejoin="round"/><path d="M18 36l10 5v10l-10-5z" fill="rgba(255,255,255,.45)"/></svg>`;
 KG.dotsGrid=function(n,color,big){let h='';for(let i=0;i<n;i++){const r=Math.floor(i/5),c=i%5;h+=`<circle cx="${12+c*19}" cy="${n>5?(r?66:30):48}" r="${big?8:7.5}" fill="${color}" stroke="rgba(42,31,61,.55)" stroke-width="2.5"/>`}return`<svg viewBox="0 0 100 92">${h}</svg>`};
 
+/* ---------------- adventure icons (map stops + stickers) ---------------- */
+let _icons=null;
+KG.gameIcons=function(){if(_icons)return _icons;
+  const C=KG.COLORS;_icons={
+  star:KG.starSVG(),
+  shapes:`<svg viewBox="0 0 100 100"><g transform="translate(2 40) scale(.5)">${KG.shapeSVG('triangle',C.green).replace(/<\/?svg[^>]*>/g,'')}</g><g transform="translate(48 40) scale(.5)">${KG.shapeSVG('circle',C.red).replace(/<\/?svg[^>]*>/g,'')}</g><g transform="translate(25 0) scale(.5)">${KG.shapeSVG('square',C.blue).replace(/<\/?svg[^>]*>/g,'')}</g></svg>`,
+  pattern:`<svg viewBox="0 0 100 100"><g transform="translate(0 30) scale(.36)">${KG.cubeSVG(C.red).replace(/<\/?svg[^>]*>/g,'')}</g><g transform="translate(32 30) scale(.36)">${KG.cubeSVG(C.blue).replace(/<\/?svg[^>]*>/g,'')}</g><g transform="translate(64 30) scale(.36)">${KG.cubeSVG(C.red).replace(/<\/?svg[^>]*>/g,'')}</g></svg>`,
+  chest:'<svg viewBox="0 0 100 100"><rect x="10" y="44" width="80" height="46" rx="6" fill="#a8693a" stroke="#4a2c16" stroke-width="5"/><path d="M10 46c0-22 80-22 80 0z" fill="#8a5528" stroke="#4a2c16" stroke-width="5"/><circle cx="34" cy="40" r="9" fill="#ffc93c" stroke="#9c6408" stroke-width="3"/><circle cx="52" cy="34" r="9" fill="#ffc93c" stroke="#9c6408" stroke-width="3"/><circle cx="68" cy="42" r="9" fill="#ffc93c" stroke="#9c6408" stroke-width="3"/><rect x="44" y="56" width="12" height="14" rx="2" fill="#ffc93c" stroke="#4a2c16" stroke-width="3"/></svg>',
+  cookie:'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#e3a65a" stroke="#8a5528" stroke-width="5"/><circle cx="50" cy="50" r="33" fill="#eeb76b"/><rect x="29" y="31" width="10" height="10" rx="2" fill="#5a3418"/><rect x="55" y="27" width="10" height="10" rx="2" fill="#5a3418"/><rect x="39" y="53" width="10" height="10" rx="2" fill="#5a3418"/><rect x="61" y="55" width="10" height="10" rx="2" fill="#5a3418"/><circle cx="88" cy="22" r="17" fill="#fffdf6"/></svg>',
+  log:'<svg viewBox="0 0 100 100"><rect x="6" y="34" width="88" height="22" rx="10" fill="#9a6436" stroke="#4a2c16" stroke-width="5"/><rect x="6" y="64" width="54" height="22" rx="10" fill="#9a6436" stroke="#4a2c16" stroke-width="5"/><circle cx="16" cy="45" r="7" fill="#d8a86a" stroke="#4a2c16" stroke-width="3"/><circle cx="16" cy="75" r="7" fill="#d8a86a" stroke="#4a2c16" stroke-width="3"/></svg>',
+  rocket:'<svg viewBox="0 0 100 100"><path d="M50 6C34 22 32 48 34 72h32c2-24 0-50-16-66z" fill="#e9e9f2" stroke="#3e4657" stroke-width="5"/><circle cx="50" cy="40" r="9" fill="#7ee0ff" stroke="#3e4657" stroke-width="4"/><path d="M34 56 22 80h14zM66 56l12 24H64z" fill="#ff5c8d" stroke="#3e4657" stroke-width="4"/><path d="M40 74h20l-10 22z" fill="#ffc93c"/></svg>',
+  clock:'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#c44a4a" stroke="#6e2222" stroke-width="5"/><circle cx="50" cy="50" r="35" fill="#fffdf6"/><rect x="47" y="20" width="6" height="32" rx="3" fill="#3d7bff"/><rect x="46" y="46" width="8" height="24" rx="4" fill="#ff5c8d" transform="rotate(90 50 50)"/><circle cx="50" cy="50" r="6" fill="#ffc93c" stroke="#6e4322" stroke-width="3"/></svg>',
+  coin:KG.coinSVG(5),
+  house:'<svg viewBox="0 0 100 100"><rect x="16" y="44" width="68" height="48" fill="#e8d2a8" stroke="#6e4322" stroke-width="5"/><path d="M8 46 50 10 92 46z" fill="#c45a4a" stroke="#6e2222" stroke-width="5" stroke-linejoin="round"/><rect x="42" y="64" width="16" height="28" fill="#6e4322"/><circle cx="78" cy="40" r="10" fill="#4aa3e0" stroke="#fff" stroke-width="3"/><text x="78" y="45" font-size="14" font-family="Fredoka, sans-serif" font-weight="700" fill="#fff" text-anchor="middle">?</text></svg>',
+  flower:'<svg viewBox="0 0 100 100"><rect x="46" y="48" width="8" height="46" fill="#3f9a3c"/>'+[0,72,144,216,288].map((a,k)=>`<ellipse cx="50" cy="20" rx="12" ry="17" fill="${['#ff4d5e','#ff9330','#ffd23f','#3d7bff','#a66bff'][k]}" stroke="rgba(42,31,61,.5)" stroke-width="3" transform="rotate(${a} 50 36)"/>`).join('')+'<circle cx="50" cy="36" r="11" fill="#ffd23f" stroke="#9a6a08" stroke-width="3"/></svg>',
+  dice:KG.diceSVG(5)
+};
+  return _icons};
+/* a die-cut sticker for a game: KG.stickerSVG(gameId) */
+KG.stickerSVG=function(id){const g=(window.CH&&CH.config&&CH.config.game(id))||{icon:'star'};const ic=KG.gameIcons()[g.icon]||KG.gameIcons().star;const H=window.CH&&CH.HEROES&&CH.HEROES[g.host];const ring=H?H.ring:'#ffc93c';
+  return`<span class="kg-sticker" style="--ring:${ring}"><span class="in">${ic}</span></span>`};
+
 /* ---------------- game shell ---------------- */
 const PRAISE={wynea:['Yes! You did it!','Brave job!','Woo-hoo!','Onward, explorer!'],ali:['Great job, friend!','You got it!','So smart!','Yay!'],matthew:['Boing! Correct!','My brain meter is beeping!','Kaboom, nice one!','Beep boop, perfect!']};
 KG.praise=who=>KG.pick(PRAISE[who]||PRAISE.wynea);
 KG.game=function(def){
   KG.setSong(def.song||'meadow');
+  const hasCH=!!(window.CH&&CH.store&&CH.config),cfgGame=hasCH?CH.config.game(def.id):null;
+  const host=def.host||(cfgGame&&cfgGame.host)||'wynea';
   const body=document.body;
   const bg=KG.el('canvas');bg.id='kg-bg';body.appendChild(bg);
   const paint=()=>KG.paintBg(bg,def.scene||'meadow');paint();addEventListener('resize',paint);
+  /* top bar: back to map · title · progress dots · hear again · music */
   const top=KG.el('div','kg-top');
-  top.innerHTML=`<a class="kg-icon" href="index.html" aria-label="All games">${KG.ICONS.home}</a><div class="kg-chip">${def.title}</div><div class="sp"></div><button class="kg-icon" id="kg-repeat" aria-label="Hear it again">${KG.ICONS.speak}</button><button class="kg-icon${musicOn?'':' off'}" data-music aria-label="Music on or off">${KG.ICONS.music}</button>`;
+  const backIcon=(window.CH&&CH.ICONS&&CH.ICONS.map)||KG.ICONS.home;
+  top.innerHTML=`<a class="kg-icon" href="index.html" aria-label="Back to the map">${backIcon}</a><div class="kg-chip">${def.title}</div><div class="kg-dots" role="progressbar" aria-label="Questions" aria-valuemin="0"></div><div class="sp"></div><button class="kg-icon" id="kg-repeat" aria-label="Hear it again">${KG.ICONS.speak}</button><button class="kg-icon${musicOn?'':' off'}" data-music aria-label="Music on or off">${KG.ICONS.music}</button>`;
   body.appendChild(top);
+  const dots=top.querySelector('.kg-dots');
   const bub=KG.el('div','kg-bubble hide','<div class="face"><img alt=""></div><div class="say"><div class="who"></div><div class="txt" aria-live="polite"></div></div>');body.appendChild(bub);
   const stage=KG.el('main');stage.id='kg-stage';body.appendChild(stage);
   const cast=KG.el('div','kg-cast');const castImg={};KG.ORDER.forEach(id=>{const i=KG.el('img');i.src=HEROES[id].full;i.alt=HEROES[id].name;castImg[id]=i;cast.appendChild(i)});body.appendChild(cast);
-  const pips=KG.el('div','kg-pips');body.appendChild(pips);
   const intro=KG.el('div','kg-overlay dim');
   intro.innerHTML=`<div class="kg-intro"><span class="tag">${def.tag||'Math adventure'}</span><h1 class="kg-title">${def.title}</h1><div class="trio">${KG.ORDER.map(id=>`<img src="${HEROES[id].full}" alt="${HEROES[id].name}">`).join('')}</div><div class="card kg-paper">${def.blurb||''}<small>${def.skill||''}</small></div><button class="kg-btn gold big" id="kg-play">Play!</button></div>`;
   body.appendChild(intro);
@@ -378,48 +412,97 @@ KG.game=function(def){
     const words=html.split(' '),t=++tok;clearInterval(typeTimer);txt.innerHTML='';
     setTimeout(()=>{if(t!==tok)return;let i=0;typeTimer=setInterval(()=>{if(t!==tok||i>=words.length){clearInterval(typeTimer);return}i++;txt.innerHTML=words.slice(0,i).join(' ');if(i%2===1)tone(H.notes[(i>>1)%4],.07,{type:'triangle',g:.03})},beatLen()/4*1000)},KG.secToNext(2)*1000)}
   function setTalk(who,sec){Object.values(castImg).forEach(i=>i.classList.remove('talk'));const i=castImg[who];if(!i)return;i.classList.add('talk');clearTimeout(talkT[who]);talkT[who]=setTimeout(()=>i.classList.remove('talk'),sec*1000)}
-  let firstTry=0,repeatLine=null,round=0,misses=0,roundMiss=0,locked=true,finished=false,introLine=null,startedAt=0,hints=0;
-  const api={stage,rounds:def.rounds||8,get round(){return round},get locked(){return locked},
+  function pose(who,cls,ms){const i=castImg[who];if(!i)return;i.classList.add(cls);setTimeout(()=>i.classList.remove(cls),ms||1600)}
+
+  /* hints: after the 2nd wrong try the game highlights the answer (.glow);
+     the shell adds a pointing hand and a spoken "Here's a hint!" */
+  let handOff=null;
+  function clearHand(){if(handOff){handOff();handOff=null}}
+  function pointTo(el){clearHand();if(!el||!el.isConnected)return;if(window.CH&&CH.ui&&CH.ui.fx){handOff=CH.ui.fx.pointAt(el)}else{el.classList.add('glow')}}
+
+  /* Race only: optional friendly bonus clock (never costs stars) */
+  const bonusOn=!!(cfgGame&&cfgGame.finale&&hasCH&&CH.store.setting('bonusTimer'));
+  let bonusEl=null,bonusT=0,bonusEnd=0,bonusLive=false,speedy=0;
+  function bonusStart(){if(!bonusOn)return;const sec=(CH.config.BONUS&&CH.config.BONUS.seconds)||12;
+    if(!bonusEl){bonusEl=KG.el('div','kg-bonus','<svg viewBox="0 0 60 60" aria-hidden="true"><circle class="bg" cx="30" cy="30" r="24"/><circle class="fg" cx="30" cy="30" r="24"/></svg>');bonusEl.setAttribute('role','img');bonusEl.setAttribute('aria-label','Speedy bonus clock');body.appendChild(bonusEl)}
+    const fg=bonusEl.querySelector('.fg'),C=2*Math.PI*24;fg.style.strokeDasharray=C;bonusEl.classList.remove('done');bonusLive=true;bonusEnd=Date.now()+sec*1000;clearInterval(bonusT);
+    const tick=()=>{const left=Math.max(0,bonusEnd-Date.now());fg.style.strokeDashoffset=C*(1-left/(sec*1000));if(!left)bonusStop()};tick();bonusT=setInterval(tick,250)}
+  function bonusStop(){clearInterval(bonusT);bonusLive=false;if(bonusEl)bonusEl.classList.add('done')}
+
+  let firstTry=0,credit=0,repeatLine=null,round=0,misses=0,roundMiss=0,locked=true,finished=false,introLine=null,startedAt=0,hints=0,glowBefore=null;
+  const api={stage,rounds:def.rounds||8,host,get round(){return round},get locked(){return locked},
     hero:k=>KG.ORDER[((k%3)+3)%3],
     talk(who,text){if(introLine){text=introLine+' '+text;introLine=null}bubble(who,text);KG.say(text,who);setTalk(who,text.split(' ').length*.36+.8)},
-    prompt(who,text){repeatLine={who,text};api.talk(who,text)},
-    cheer(who,ms){const list=who?[castImg[who]]:Object.values(castImg);list.forEach(i=>{i.classList.add('cheer');setTimeout(()=>i.classList.remove('cheer'),ms||1400)})},
+    prompt(who,text){repeatLine={who,text};api.talk(who,text);if(!locked)bonusStart()},
+    cheer(who,ms){const list=who?[castImg[who]]:Object.values(castImg);list.forEach(i=>{if(!i)return;i.classList.add('cheer');setTimeout(()=>i.classList.remove('cheer'),ms||1400)})},
     lock(){locked=true},unlock(){locked=false},
-    correct(o){o=o||{};if(locked&&!o.force)return false;locked=true;if(roundMiss===0)firstTry++;KG.sfx.correct(round);if(o.el){KG.sparkle(o.el);o.el.classList.remove('pop');void o.el.offsetWidth;o.el.classList.add('pop')}
-      const who=o.who||api.hero(round+1);api.cheer(who);api.talk(who,o.line||KG.praise(who));renderPips(round+1);
+    /** point at the answer yourself (optional — glowing it works too) */
+    hint(el){pointTo(el)},
+    correct(o){o=o||{};if(locked&&!o.force)return false;locked=true;clearHand();
+      if(roundMiss===0)firstTry++;credit+=hasCH?CH.config.creditFor(roundMiss):(roundMiss?0:1);
+      KG.sfx.correct(round);if(o.el){KG.sparkle(o.el);o.el.classList.remove('pop');void o.el.offsetWidth;o.el.classList.add('pop')}
+      let line=o.line||KG.praise(o.who||api.hero(round+1));
+      if(bonusLive&&Date.now()<bonusEnd){speedy++;line+=' Speedy bonus!';KG.sfx.coin()}bonusStop();
+      const who=o.who||api.hero(round+1);api.cheer(who);if(who!==host)api.cheer(host,900);api.talk(who,line);renderDots(round+1,true);
       if(o.stay)return true;setTimeout(api.next,o.delay||2200);return true},
-    wrong(o){o=o||{};misses++;roundMiss++;if(roundMiss===2)hints++;KG.sfx.wrong();if(o.el){o.el.classList.remove('shake');void o.el.offsetWidth;o.el.classList.add('shake')}api.talk(o.who||api.hero(round+2),o.line||'Oopsie! Try again!');return roundMiss},
+    wrong(o){o=o||{};misses++;roundMiss++;KG.sfx.wrong();
+      if(o.el){o.el.classList.remove('shake');void o.el.offsetWidth;o.el.classList.add('shake')}
+      const who=o.who||api.hero(round+2);pose(who,'think',1500);
+      let line=o.line||'Hmm, let’s try another one!';
+      if(roundMiss===2){hints++;line='Here’s a hint! '+line;glowBefore=new Set(stage.querySelectorAll('.glow'));
+        setTimeout(()=>{if(finished)return;const fresh=[...stage.querySelectorAll('.glow')].filter(e=>!glowBefore.has(e));if(fresh[0])pointTo(fresh[0])},80)}
+      api.talk(who,line);return roundMiss},
     get roundMisses(){return roundMiss},
-    next(){if(finished)return;round++;roundMiss=0;if(round>=api.rounds){api.finish();return}renderPips(round);locked=false;inst.round(round)},
-    finish(){if(finished)return;finished=true;locked=true;renderPips(api.rounds);
-      const right=Math.min(api.rounds,firstTry),pct=Math.round(right/api.rounds*100),tier=pct>=80?'high':pct>=50?'mid':'low',stars=tier==='high'?3:tier==='mid'?2:1;
+    next(){if(finished)return;clearHand();bonusStop();round++;roundMiss=0;if(round>=api.rounds){api.finish();return}renderDots(round);locked=false;inst.round(round)},
+    finish(){if(finished)return;finished=true;locked=true;clearHand();bonusStop();renderDots(api.rounds);
+      const total=api.rounds,right=Math.min(total,firstTry),cr=Math.min(total,credit);
+      const stars=hasCH?CH.config.starsFor(cr,total):(right/total>=.9?3:right/total>=.7?2:1);
       KG.prog.won[def.id]=Math.max(KG.prog.won[def.id]||0,stars);KG.save();
-      if(window.CH&&CH.store&&CH.store.activeId())CH.store.recordSession(def.id,{startedAt:new Date(startedAt||Date.now()).toISOString(),durationSec:Math.round((Date.now()-(startedAt||Date.now()))/1000),correct:right,total:api.rounds,hintsUsed:hints,stars});
-      setTimeout(()=>{const idx=KG.GAMES.findIndex(g=>g.id===def.id),nx=KG.GAMES[(idx+1)%KG.GAMES.length];const w=api.hero(1);
-        Object.values(castImg).forEach(i=>i.classList.remove('sad','cheer','talk'));
-        let title,text,say,btns;
-        if(tier==='high'){KG.sfx.fanfare();KG.sfx.applause(4.5);KG.fireworks();KG.confetti();api.cheer(null,5000);
-          title=def.winTitle||'You did it!';text=def.winText||'Super math skills!';say=(pct===100?'Perfect score! ':'')+(def.winSay||'Hooray! You did it!');
-          btns=`<a class="kg-btn gold" href="${nx.file}">Next game</a><button class="kg-btn sky" data-again>Play again</button><a class="kg-btn" href="index.html">All games</a>`}
-        else if(tier==='mid'){KG.sfx.sad();Object.values(castImg).forEach(i=>i.classList.add('sad'));setTimeout(()=>Object.values(castImg).forEach(i=>i.classList.remove('sad')),4500);
-          title='Good try!';text='You are getting there. Play again to win all three stars!';say=`Aww, good try! You got ${right} out of ${api.rounds}. Let’s try again and get even more!`;
-          btns=`<button class="kg-btn gold big" data-again>Try again</button><a class="kg-btn sky" href="${nx.file}">Next game</a><a class="kg-btn" href="index.html">All games</a>`}
-        else{KG.sfx.sad();setTimeout(()=>KG.sfx.rain(5),1200);Object.values(castImg).forEach(i=>i.classList.add('sad'));
-          title='Oh no!';text='That one was tricky. Let’s practice together and try again!';say=`Oh no... you got ${right} out of ${api.rounds}. That’s okay! Let’s practice and try again together!`;
-          btns=`<button class="kg-btn gold big" data-again>Try again</button><a class="kg-btn" href="index.html">All games</a>`}
-        const drops=tier==='low'?Array.from({length:9},(_,k)=>`<i class="kg-drop" style="left:${24+k*6.5}%;top:8%;animation-delay:${(k*.13)%1}s"></i>`).join(''):'';
-        const cloud=tier==='low'?`<svg class="kg-cloud" viewBox="0 0 200 80"><g fill="#8a94a8" stroke="#3e4657" stroke-width="5"><rect x="20" y="30" width="160" height="42" rx="20"/><rect x="50" y="10" width="60" height="50" rx="24"/><rect x="96" y="18" width="56" height="44" rx="22"/></g><path d="M70 50q8-6 16 0M114 50q8-6 16 0" stroke="#3e4657" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M88 64q12-8 24 0" stroke="#3e4657" stroke-width="5" fill="none" stroke-linecap="round" transform="rotate(180 100 62)"/></svg>${drops}`:'';
-        const tears=tier!=='high'?KG.ORDER.map((id,k)=>`<i class="kg-tear" style="left:${22+k*28}%;top:42%;animation-delay:${k*.4}s"></i>`).join(''):'';
-        win.innerHTML=`<div class="kg-win kg-panel ${tier}"><div class="kg-paper"><div class="trio">${cloud}${KG.ORDER.map(id=>`<img src="${HEROES[id].full}" alt="">`).join('')}${tier==='low'?tears:''}</div><h2>${title}</h2><div class="s3">${[0,1,2].map(i=>i<stars?KG.starSVG():KG.starSVG().replace('<svg','<svg class="dim"')).join('')}</div><div class="res">${right} of ${api.rounds} right on the first try</div><p>${text}</p></div><div class="row">${btns}</div></div>`;
-        win.hidden=false;win.querySelector('[data-again]').onclick=()=>{KG.sfx.pop();location.reload()};KG.say(say,w,{queue:false})},900)},
+      let res=null;
+      if(hasCH&&CH.store.activeId())res=CH.store.recordSession(def.id,{startedAt:new Date(startedAt||Date.now()).toISOString(),durationSec:Math.round((Date.now()-(startedAt||Date.now()))/1000),correct:right,total,hintsUsed:hints,stars});
+      setTimeout(()=>showEnd(stars,right,total,res),900)},
     beats(n,fn,div){const B=beatLen()/(div||1);const d=KG.secToNext(div||1)*1000;for(let i=0;i<n;i++)setTimeout(()=>fn(i),d+i*B*1000);return d+n*B*1000},
     beatLen
   };
-  function renderPips(cur){pips.innerHTML='';for(let i=0;i<api.rounds;i++){const p=KG.el('div','kg-pip'+(i===cur?' now':''),i<cur?KG.starSVG():KG.starSVG('rgba(255,253,246,.7)','rgba(110,67,34,.5)'));pips.appendChild(p)}}
+
+  /* end screen — always a celebration: 1–3 stars, sticker, personal best */
+  function showEnd(stars,right,total,res){
+    Object.values(castImg).forEach(i=>i.classList.remove('think','cheer','talk'));
+    KG.sfx.fanfare();KG.confetti();api.cheer(null,4000);
+    if(stars===3){KG.sfx.applause(4);KG.fireworks()}
+    const titles={3:def.winTitle||'Amazing!',2:'Great job!',1:'You did it!'};
+    const texts={3:def.winText||'Super math skills!',2:'You worked so hard. Every try makes your brain stronger!',1:'You finished the whole adventure! Play again to grow more stars.'};
+    const sticker=!!(res&&res.newSticker),pb=!!(res&&res.personalBest&&!res.firstCompletion);
+    const name=hasCH&&CH.store.activePlayer()?CH.store.activePlayer().name:'';
+    const sayName=name&&CH.voice?CH.voice.speakName(CH.store.activePlayer()):'';
+    const starWord=stars===1?'one star':stars+' stars';
+    const say=(stars===3?(def.winSay||'Hooray! You did it!'):stars===2?'Great job'+(sayName?', '+sayName:'')+'!':'You did it'+(sayName?', '+sayName:'')+'! You finished the adventure!')
+      +` You earned ${starWord}!`+(sticker?' And you got a new sticker!':'')+(pb?' That’s your personal best!':'');
+    win.innerHTML=`<div class="kg-win kg-panel" role="dialog" aria-modal="true" aria-labelledby="kg-win-h"><div class="kg-paper">
+      <div class="trio">${KG.ORDER.map(id=>`<img src="${HEROES[id].full}" alt="">`).join('')}</div>
+      <h2 id="kg-win-h">${titles[stars]}</h2><div class="s3"></div>
+      ${pb?'<div class="kg-best">Personal best!</div>':''}
+      ${sticker?`<div class="got">${KG.stickerSVG(def.id)}<span>New sticker!</span></div>`:''}
+      ${right?`<div class="res">${right} of ${total} right on the first try</div>`:''}<p>${texts[stars]}</p></div>
+      <div class="row"><button class="kg-btn gold big" data-again>${(window.CH&&CH.ICONS&&CH.ICONS.again)||''}Play again</button><a class="kg-btn sky" href="index.html" data-map>${(window.CH&&CH.ICONS&&CH.ICONS.map)||''}Back to map</a></div></div>`;
+    const s3=win.querySelector('.s3');
+    if(window.CH&&CH.ui)s3.appendChild(CH.ui.starRating(stars,{animate:true,label:`You earned ${stars} of 3 stars`}));
+    else s3.innerHTML=[0,1,2].map(i=>i<stars?KG.starSVG():KG.starSVG('rgba(255,253,246,.5)','rgba(110,67,34,.5)')).join('');
+    win.hidden=false;
+    const again=win.querySelector('[data-again]');again.onclick=()=>{KG.sfx.pop();location.reload()};
+    win.querySelector('[data-map]').addEventListener('click',()=>{try{sessionStorage.setItem('ch-in','1')}catch(e){}});
+    setTimeout(()=>again.focus(),400);
+    KG.say(say,host,{queue:false});
+  }
+
+  function renderDots(cur,justGot){dots.innerHTML='';dots.setAttribute('aria-valuemax',api.rounds);dots.setAttribute('aria-valuenow',Math.min(cur,api.rounds));dots.setAttribute('aria-valuetext',`Question ${Math.min(cur+1,api.rounds)} of ${api.rounds}`);
+    for(let i=0;i<api.rounds;i++){const got=i<cur;const d=KG.el('span','kg-dot'+(i===cur?' now':'')+(got&&justGot&&i===cur-1?' got':''),got?KG.starSVG():'<i></i>');dots.appendChild(d)}}
+  renderDots(0);
   $('#kg-repeat').onclick=()=>{KG.ensureAudio();if(repeatLine)api.talk(repeatLine.who,repeatLine.text)};
   document.querySelector('[data-music]').onclick=()=>{KG.ensureAudio();KG.setMusic(!musicOn)};
+  try{sessionStorage.setItem('ch-in','1')}catch(e){}
   const inst=def.build(stage,api);
-  $('#kg-play').onclick=()=>{KG.ensureAudio();if(window.CH&&CH.voice)CH.voice.unlock();startedAt=Date.now();hints=0;KG.sfx.pop();intro.hidden=true;round=0;misses=0;renderPips(0);introLine=def.intro?def.intro.text:null;locked=false;inst.round(0);if(introLine){const w=def.intro.who;api.talk(w,'');}};
+  $('#kg-play').onclick=()=>{KG.ensureAudio();if(window.CH&&CH.voice)CH.voice.unlock();startedAt=Date.now();hints=0;credit=0;firstTry=0;KG.sfx.pop();intro.hidden=true;round=0;misses=0;renderDots(0);introLine=def.intro?def.intro.text:null;locked=false;inst.round(0);if(introLine){const w=def.intro.who;api.talk(w,'');}};
   setTimeout(()=>intro.querySelector('#kg-play').focus(),300);
   return api;
 };

@@ -37,9 +37,9 @@ KG.game({id:'treasure',title:'Treasure of Coconut Island',tag:'Comparing',scene:
         const finish=()=>{let line;if(q==='same')line=`Both have ${a}. They are the <b>same</b>!`;else{const m=cur.n[pick],o=cur.n[1-pick];line=`${m} is <b>${q==='more'?'more':'fewer'}</b> than ${o}!`}
           ch.forEach((c,k)=>{c.querySelector('.count').textContent=cur.n[k];c.querySelector('.count').classList.add('show')});KG.sfx.coin();api.correct({force:true,el,line,delay:2600})};
         if(pick==='same')finish();else countUp(ch[pick],cur.n[pick],finish)}
-      else{const el=pick==='same'?same:ch[pick];const n=api.wrong({el,line:q==='same'?'Count both chests. Do they have the same?':`Look again! Which chest has <b>${q}</b> coins?`});if(n>=2){ch.forEach((c,k)=>{c.querySelector('.count').classList.add('show')})}}}
+      else{const el=pick==='same'?same:ch[pick];const n=api.wrong({el,line:q==='same'?'Count both chests. Do they have the same?':`Look again! Which chest has <b>${q}</b> coins?`});if(n>=2){ch.forEach((c,k)=>{c.querySelector('.count').classList.add('show')});const want=q==='same'?same:ch[q==='more'?(cur.n[0]>cur.n[1]?0:1):(cur.n[0]<cur.n[1]?0:1)];want.classList.add('glow')}}}
     ch.forEach((c,k)=>c.onclick=()=>answer(k));same.onclick=()=>answer('same');
-    return{round(i){const q=Q[i];cur={q,n:counts(i,q)};fill(ch[0],cur.n[0]);fill(ch[1],cur.n[1]);const showSame=i>=3;same.hidden=!showSame;sp.hidden=showSame;
+    return{round(i){ch.concat(same).forEach(e=>e.classList.remove('glow'));const q=Q[i];cur={q,n:counts(i,q)};fill(ch[0],cur.n[0]);fill(ch[1],cur.n[1]);const showSame=i>=3;same.hidden=!showSame;sp.hidden=showSame;
       const who=api.hero(i);
       api.prompt(who,q==='more'?KG.pick(['Which chest has <b>more</b> coins?','Tap the chest with <b>more</b> treasure!']):q==='fewer'?KG.pick(['Which chest has <b>fewer</b> coins?','Tap the chest with <b>fewer</b> coins!']):'Hmm! Do these chests have more, fewer, or the <b>same</b>?');
     }};

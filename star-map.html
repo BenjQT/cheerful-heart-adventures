@@ -119,14 +119,8 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px;box-shadow:0 0 0 
 .win p{margin:0;font-weight:600;font-size:1.05rem}
 .win .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .win .stars3 svg.dim{filter:grayscale(1) opacity(.35)}
-.win.mid .card{background:#eef2fb}.win.mid h2{color:#9fc2ff}
-.win.low{background:repeating-linear-gradient(180deg,#8b97ad 0 22px,#7d899f 22px 24px);border-color:#3e4657}
-.win.low .card{background:#e3e8f1;padding-top:70px}.win.low h2{color:#c9d6ee;text-shadow:0 3px 0 #3e4657,2px 0 0 #3e4657,-2px 0 0 #3e4657,0 -2px 0 #3e4657}
-.wcloud{position:absolute;left:50%;top:-30px;width:180px;transform:translateX(-50%);height:110px}
-.wcloud svg{width:100%;animation:drift 3s ease-in-out infinite}
-@keyframes drift{50%{transform:translateX(8px)}}
-.wcloud i{position:absolute;top:62px;width:5px;height:14px;border-radius:3px;background:#6fb6ff;animation:fall 1s linear infinite}
-@keyframes fall{from{transform:translateY(0);opacity:.9}to{transform:translateY(70px);opacity:0}}
+.win .extra{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.win .extra:empty{display:none}
+.win .extra span{font-family:var(--display);font-size:1rem;padding:.25em .9em;border-radius:999px;background:var(--gold);box-shadow:inset 0 -3px 0 var(--gold-d)}
 .fadein{animation:fade .35s}
 @keyframes fade{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
@@ -171,17 +165,17 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px;box-shadow:0 0 0 
 <div class="overlay dim" id="win" hidden>
   <div class="win panel">
     <div class="card" style="position:relative">
-      <div id="winCloud" class="wcloud" hidden><svg viewBox="0 0 200 80"><g fill="#8a94a8" stroke="#3e4657" stroke-width="5"><rect x="20" y="30" width="160" height="42" rx="20"/><rect x="50" y="10" width="60" height="50" rx="24"/><rect x="96" y="18" width="56" height="44" rx="22"/></g><path d="M70 50q8-6 16 0M114 50q8-6 16 0" stroke="#3e4657" stroke-width="5" fill="none" stroke-linecap="round"/></svg><i style="left:24%;animation-delay:0.00s"></i><i style="left:31%;animation-delay:0.13s"></i><i style="left:38%;animation-delay:0.26s"></i><i style="left:45%;animation-delay:0.39s"></i><i style="left:52%;animation-delay:0.52s"></i><i style="left:59%;animation-delay:0.65s"></i><i style="left:66%;animation-delay:0.78s"></i><i style="left:73%;animation-delay:0.91s"></i></div>
       <h2 id="winTitle">Star Map Found!</h2>
       <div class="stars3"><svg viewBox="0 0 100 100"><path fill="#ffc93c" stroke="#6e4322" stroke-width="5" stroke-linejoin="round" d="M50 5l13 28 30 3-23 20 7 30-27-16-27 16 7-30L7 36l30-3z"/></svg><svg viewBox="0 0 100 100"><path fill="#ffc93c" stroke="#6e4322" stroke-width="5" stroke-linejoin="round" d="M50 5l13 28 30 3-23 20 7 30-27-16-27 16 7-30L7 36l30-3z"/></svg><svg viewBox="0 0 100 100"><path fill="#ffc93c" stroke="#6e4322" stroke-width="5" stroke-linejoin="round" d="M50 5l13 28 30 3-23 20 7 30-27-16-27 16 7-30L7 36l30-3z"/></svg></div>
+      <div class="extra" id="winExtra"></div>
       <p id="winMsg">You counted all the way!</p>
       <div class="counted" id="winCounted"></div>
     </div>
     <div class="row">
       <button class="btn gold" id="nextBtn">Next adventure</button>
       <button class="btn sky" id="againBtn">Play again</button>
-      <button class="btn" id="menuBtn">Menu</button>
-      <a class="btn gold" href="index.html" style="text-decoration:none">All games</a>
+      <button class="btn" id="menuBtn">Levels</button>
+      <a class="btn" href="index.html" id="mapLink" style="text-decoration:none">Back to map</a>
     </div>
   </div>
 </div>
@@ -224,8 +218,16 @@ function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a
 const lerp=(a,b,t)=>a+(b-a)*t;
 
 /* ================= storage ================= */
-function loadProg(){try{const v=JSON.parse(localStorage.getItem('starmap-progress')||'{}');return{unlocked:Math.max(1,v.unlocked|0),won:v.won||{},leader:v.leader||'wynea',music:v.music!==false}}catch(e){return{unlocked:1,won:{},leader:'wynea',music:true}}}
-function saveProg(){try{localStorage.setItem('starmap-progress',JSON.stringify(prog))}catch(e){}}
+/* level unlocks + stars live on the active player (CH.store extra 'star-map');
+   with a player, the old device key 'starmap-progress' keeps only leader + music */
+const HAS_PLAYER=!!(window.CH&&CH.store&&CH.store.activeId());
+function loadProg(){let v={};try{v=JSON.parse(localStorage.getItem('starmap-progress')||'{}')||{}}catch(e){}
+  const base={unlocked:Math.max(1,v.unlocked|0),won:v.won||{},stars:{},leader:v.leader||'wynea',music:v.music!==false};
+  if(HAS_PLAYER){const x=CH.store.getExtra('star-map')||{};const won={};(x.wonLevels||[]).forEach(k=>won[k]=true);
+    base.won=won;base.stars=x.levelStars||{};base.unlocked=Math.max(1,x.unlocked|0)}
+  return base}
+function saveProg(){try{let v=prog;if(HAS_PLAYER){/* keep the old device record untouched (backup); only leader + music change */v=JSON.parse(localStorage.getItem('starmap-progress')||'{}')||{};v.leader=prog.leader;v.music=prog.music}localStorage.setItem('starmap-progress',JSON.stringify(v))}catch(e){}
+  if(HAS_PLAYER)CH.store.setExtra('star-map',{wonLevels:Object.keys(prog.won).filter(k=>prog.won[k]).map(Number),unlocked:prog.unlocked,levelStars:prog.stars})}
 const prog=loadProg();
 
 /* ================= renderer ================= */
@@ -504,13 +506,12 @@ function wah(f,when,dur,vib){if(!actx)return;const t=actx.currentTime+when,o=act
 const endfx={
   applause(sec){for(let i=0;i<sec*55;i++)burst(Math.random()*sec*(i%5===0?.4:1)+.05,.025+Math.random()*.03,.06+Math.random()*.14,900+Math.random()*1900,'bandpass',1.4)},
   fireworks(n,cb){for(let i=0;i<n;i++){const w=.25+i*.75+Math.random()*.25;tone(450,.6,{g:.045,slide:3.4,when:w});burst(w+.6,1.1,.55,160,'lowpass',.7);burst(w+.6,.25,.25,900,'bandpass',.8);for(let k=0;k<16;k++)burst(w+.75+Math.random()*.8,.02,.12+Math.random()*.1,3500+Math.random()*3500,'bandpass',2);setTimeout(()=>cb(i),(w+.6)*1000)}},
-  sad(){const w=secToNext(1);wah(392,w,.42);wah(370,w+.48,.42);wah(349,w+.96,.42);wah(330,w+1.44,1.3,true)},
-  rain(sec){burst(0,sec,.06,1400,'lowpass',.5);for(let i=0;i<sec*14;i++)burst(Math.random()*sec,.02,.05,4000+Math.random()*2000,'bandpass',3)}
 };
-function levelTier(){const pct=Math.round(firstTry/level.seq.length*100);return{pct,tier:pct>=80?'high':pct>=50?'mid':'low'}}
+let credit=0;
+function levelStars(){const tot=level.seq.length;if(window.CH&&CH.config)return CH.config.starsFor(credit,tot);const a=firstTry/tot;return a>=.9?3:a>=.7?2:1}
 const sfx={
   chime(k){const f=PENTA[Math.max(0,Math.min(PENTA.length-1,k))];tone(f,.5,{type:'triangle',g:.28});tone(f*2,.35,{g:.08,when:.05});tone(f*1.5,.45,{type:'triangle',g:.12,when:Math.max(.08,secToNext(2))})},
-  boop(){tone(330,.22,{g:.2,slide:.6});tone(247,.28,{g:.16,when:.14,slide:.7})},
+  boop(){tone(392,.14,{type:'triangle',g:.09});tone(440,.18,{type:'triangle',g:.07,when:.11})}, // soft "hmm?" - no buzzer
   pop(){tone(880,.09,{type:'triangle',g:.15,slide:1.6})},
   fanfare(){const w=secToNext(1),e=STEP/2;[523,659,784,1047].forEach((f,i)=>tone(f,.3,{type:'triangle',g:.22,when:w+i*e}));tone(1319,1,{type:'triangle',g:.2,when:w+4*e});tone(784,1,{g:.12,when:w+4*e});tone(659,1,{g:.1,when:w+4*e})},
   whoosh(){tone(300,.5,{type:'sawtooth',g:.04,slide:3})}
@@ -563,7 +564,7 @@ function fitCamera(){const aspect=innerWidth/innerHeight;camera.aspect=aspect;ca
 
 function startLevel(idx){
   winTimers.forEach(clearTimeout);winTimers=[];
-  levelIdx=idx;level=LEVELS[idx];progress=0;wrongCount=0;firstTry=0;hintsUsed=0;levelStartedAt=Date.now();hintClock=0;lastCollected=null;
+  levelIdx=idx;level=LEVELS[idx];progress=0;wrongCount=0;firstTry=0;credit=0;hintsUsed=0;levelStartedAt=Date.now();hintClock=0;lastCollected=null;
   const defs=buildWorld(level);applyTheme(level.theme);spawnStars(defs);placeHeroes();fitCamera();
   if(confetti){scene.remove(confetti.mesh);confetti=null}
   state='play';$('#title').hidden=true;$('#win').hidden=true;$('#hud').hidden=false;
@@ -588,7 +589,7 @@ function onStarTap(s){
   if(s.n===curTarget())collect(s);else wrong(s);
 }
 function collect(s){
-  if(wrongCount===0)firstTry++;s.collected=true;progress++;wrongCount=0;hintClock=0;
+  if(wrongCount===0)firstTry++;credit+=(window.CH&&CH.config)?CH.config.creditFor(wrongCount):(wrongCount?0:1);s.collected=true;progress++;wrongCount=0;hintClock=0;
   stars.forEach(x=>{x.hinted=false;x.ar.visible=false});
   sfx.chime(progress-1);
   sparkle(s.grp.position.clone().add(new THREE.Vector3(0,.2,0)));
@@ -633,26 +634,27 @@ function finishLevel(){
     winTimers.push(setTimeout(()=>{say(String(s.n)+'!',true,null,chain()[k%3].id);const h=chain()[k%3];h.talk=.5;h.hop=1},Math.max(0,start+k*gap-SPEECH_LAG*1000)));winTimers.push(setTimeout(light,start+k*gap))});
   const end=start+ordered.length*gap+300;
   if(level.dir<0)winTimers.push(setTimeout(()=>{say('Three, two, one... Blast off!',true,null,'matthew');sfx.whoosh();for(let k=0;k<6;k++)setTimeout(()=>sparkle(new THREE.Vector3((Math.random()-.5)*W*.7,7+Math.random()*3,(Math.random()-.5)*D*.5),[0xff8ac0,0xffe066,0x9fd8ff,0xc6a8ff][k%4],70,5,.3),k*260)},end));
-  winTimers.push(setTimeout(()=>{const T=levelTier();if(T.tier==='high'){sfx.fanfare();endfx.applause(4.5);endfx.fireworks(6,k=>sparkle(new THREE.Vector3((Math.random()-.5)*W*.7,7+Math.random()*3,(Math.random()-.5)*D*.5),[0xff8ac0,0xffe066,0x9fd8ff,0xc6a8ff,0x9dff9a,0xffb070][k%6],90,5.5,.32));burstConfetti();chain().forEach(h=>h.cheer=4)}else{endfx.sad();if(T.tier==='low')setTimeout(()=>endfx.rain(5),1200)}},end+(level.dir<0?900:0)));
+  winTimers.push(setTimeout(()=>{const st=levelStars();sfx.fanfare();burstConfetti();chain().forEach(h=>h.cheer=4);if(st===3){endfx.applause(4.5);endfx.fireworks(6,k=>sparkle(new THREE.Vector3((Math.random()-.5)*W*.7,7+Math.random()*3,(Math.random()-.5)*D*.5),[0xff8ac0,0xffe066,0x9fd8ff,0xc6a8ff,0x9dff9a,0xffb070][k%6],90,5.5,.32))}},end+(level.dir<0?900:0)));
   winTimers.push(setTimeout(showWin,end+(level.dir<0?2100:1300)));
-  {const T=levelTier(),st=T.tier==='high'?3:T.tier==='mid'?2:1;if(window.CH&&CH.store&&CH.store.activeId())CH.store.recordSession('star-map',{startedAt:new Date(levelStartedAt).toISOString(),durationSec:Math.round((Date.now()-levelStartedAt)/1000),correct:firstTry,total:level.seq.length,hintsUsed,stars:st,level:level.name})}
-  if(levelTier().tier!=='low'){prog.won[levelIdx]=true;prog.unlocked=Math.max(prog.unlocked,Math.min(LEVELS.length,levelIdx+2))}saveProg();
+  {const st=levelStars();lastResult=null;if(HAS_PLAYER)lastResult=CH.store.recordSession('star-map',{startedAt:new Date(levelStartedAt).toISOString(),durationSec:Math.round((Date.now()-levelStartedAt)/1000),correct:firstTry,total:level.seq.length,hintsUsed,stars:st,level:level.name});
+    prog.stars[levelIdx]=Math.max(prog.stars[levelIdx]||0,st)}
+  prog.won[levelIdx]=true;prog.unlocked=Math.max(prog.unlocked,Math.min(LEVELS.length,levelIdx+2));saveProg(); // finishing a level always opens the next
 }
+let lastResult=null;
 function showWin(){
-  state='win';$('#hud').hidden=true;const last=levelIdx===LEVELS.length-1;const T=levelTier(),right=firstTry,tot=level.seq.length;
-  const panel=$('#win .win');panel.classList.remove('high','mid','low');panel.classList.add(T.tier);
-  const stars=T.tier==='high'?3:T.tier==='mid'?2:1;[...document.querySelectorAll('#win .stars3 svg')].forEach((sv,k)=>sv.classList.toggle('dim',k>=stars));
-  const cl=$('#winCloud');cl.hidden=T.tier!=='low';
+  state='win';$('#hud').hidden=true;const last=levelIdx===LEVELS.length-1;const right=firstTry,tot=level.seq.length,stars=levelStars();
+  [...document.querySelectorAll('#win .stars3 svg')].forEach((sv,k)=>sv.classList.toggle('dim',k>=stars));
   const range=level.dir>0?`from ${level.seq[0]} to ${level.seq[tot-1]}`:`down from ${level.seq[0]} to ${level.seq[tot-1]}`;
   const wc=$('#winCounted');wc.innerHTML='';level.seq.forEach(n=>{const s=document.createElement('span');s.textContent=n;wc.appendChild(s)});
-  let msg;
-  if(T.tier==='high'){$('#winTitle').textContent=last?'Map Complete!':'Star Map Found!';$('#winMsg').textContent=`You counted ${range}! ${right} of ${tot} on the first try.`;$('#nextBtn').textContent=last?'All adventures':'Next adventure';$('#nextBtn').hidden=false;$('#againBtn').textContent='Play again';
-    msg=(T.pct===100?'Perfect score! ':'')+(last?'Hooray! You finished every adventure! You are a counting superstar!':'Hooray! The star map is back together!')}
-  else if(T.tier==='mid'){$('#winTitle').textContent='Good try!';$('#winMsg').textContent=`You got ${right} of ${tot} on the first try. Play again to win all three stars!`;$('#nextBtn').textContent=last?'All adventures':'Next adventure';$('#nextBtn').hidden=false;$('#againBtn').textContent='Try again';
-    msg=`Aww, good try! You got ${right} out of ${tot}. Let’s try again and get even more!`}
-  else{$('#winTitle').textContent='Oh no!';$('#winMsg').textContent=`You got ${right} of ${tot} on the first try. That’s okay! Let’s practice and try again.`;$('#nextBtn').hidden=true;$('#againBtn').textContent='Try again';
-    msg=`Oh no... that was tricky. That’s okay! Let’s practice and try again together!`}
-  $('#win').hidden=false;say(msg,true,null,leaderId);
+  const r=lastResult||{},sticker=!!r.newSticker,pb=!!(r.personalBest&&!r.firstCompletion);
+  $('#winExtra').innerHTML=(pb?'<span>Personal best!</span>':'')+(sticker?'<span>New sticker!</span>':'');
+  $('#winTitle').textContent=stars===3?(last?'Map Complete!':'Star Map Found!'):stars===2?'Great counting!':'You did it!';
+  $('#winMsg').textContent=`You counted ${range}! ${right} of ${tot} on the first try.`;
+  $('#nextBtn').textContent=last?'All levels':'Next level';$('#nextBtn').hidden=false;$('#againBtn').textContent='Play again';
+  const word=stars===1?'one star':stars+' stars';
+  const msg=(stars===3?(right===tot?'Perfect score! ':'')+(last?'Hooray! You finished every level! You are a counting superstar!':'Hooray! The star map is back together!'):stars===2?'Great counting! The star map is back together!':'You did it! You found every star!')
+    +` You earned ${word}!`+(sticker?' And you got a new sticker!':'')+(pb?' That’s your personal best!':'');
+  $('#win').hidden=false;setTimeout(()=>$('#nextBtn').focus(),300);say(msg,true,null,leaderId);
 }
 function goTitle(){
   winTimers.forEach(clearTimeout);winTimers=[];if(speechOK)speechSynthesis.cancel();
@@ -673,7 +675,7 @@ function renderMenu(){
   const lv=$('#levels');lv.innerHTML='';
   LEVELS.forEach((L,k)=>{const locked=k+1>prog.unlocked;const b=document.createElement('button');b.className='card level-card';b.id='level-'+k;b.disabled=locked;
     const r=L.seq[0]+'–'+L.seq[L.seq.length-1];
-    b.innerHTML=`${locked?lockSVG:''}<span class="range">${r}</span><span class="ln">${L.name}</span><span class="sk">${L.skill}</span><span class="won">${prog.won[k]?starSVG+starSVG+starSVG:''}</span>`;
+    b.innerHTML=`${locked?lockSVG:''}<span class="range">${r}</span><span class="ln">${L.name}</span><span class="sk">${L.skill}</span><span class="won">${prog.won[k]?starSVG.repeat(prog.stars[k]||3):''}</span>`;
     b.setAttribute('aria-label',`${L.name}, ${L.skill}${locked?', locked':''}`);
     b.onclick=()=>{ensureAudio();sfx.pop();startLevel(k)};lv.appendChild(b)});
 }
@@ -693,6 +695,7 @@ $('#musicBtn').onclick=()=>{ensureAudio();setMusic(!musicOn)};
 $('#nextBtn').onclick=()=>{sfx.pop();if(levelIdx<LEVELS.length-1)startLevel(levelIdx+1);else goTitle()};
 $('#againBtn').onclick=()=>{sfx.pop();startLevel(levelIdx)};
 $('#menuBtn').onclick=()=>{sfx.pop();goTitle()};
+$('#mapLink').addEventListener('click',()=>{try{sessionStorage.setItem('ch-in','1')}catch(e){}});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight,false);fitCamera()});
 
 /* ================= loop ================= */

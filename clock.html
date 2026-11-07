@@ -10,6 +10,7 @@
 .setmode .num{cursor:pointer}
 .setmode .numhit{fill:rgba(255,201,60,.0);transition:fill .2s}
 .setmode .numhit:hover{fill:rgba(255,201,60,.35)}
+.num.glow{box-shadow:none!important}.setmode .num.glow .numhit{fill:rgba(255,201,60,.85);stroke:#fff;stroke-width:4}
 .side{display:grid;gap:12px;justify-items:center;min-width:0}
 .act{font-family:var(--display);font-size:clamp(1.1rem,4vw,1.5rem);color:#fff;background:rgba(42,31,61,.6);padding:.3em .9em;border-radius:14px;text-align:center}
 .opts{display:grid;gap:10px;width:min(240px,80vw)}
@@ -37,8 +38,8 @@ KG.game({id:'clock',title:'Wynea’s Clock Tower Quest',tag:'Time',scene:'clock'
     function setHour(h){let target=h*30;while(target<hourDeg-180)target+=360;while(target>hourDeg+180)target-=360;hourDeg=target;hh.style.transform=`rotate(${hourDeg}deg)`}
     cw.querySelectorAll('.num').forEach(n=>n.addEventListener('click',()=>{if(!cur||cur.t!=='set'||api.locked)return;const h=+n.dataset.h;setHour(h);KG.sfx.tick();
       if(h===cur.h){api.correct({el:cw,line:`${h} o’clock! Time to ${cur.act}!`})}
-      else{const k=api.wrong({line:`That says ${h} o’clock. Move the short hand to <b>${cur.h}</b>!`});if(k>=2)tip.textContent=`Tap the number ${cur.h} on the clock.`}}));
-    return{round(i){cur=ROUNDS[i];opts.innerHTML='';tip.textContent='';act.textContent=`Time to ${cur.act}!`;
+      else{const k=api.wrong({line:`That says ${h} o’clock. Move the short hand to <b>${cur.h}</b>!`});if(k>=2){tip.textContent=`Tap the number ${cur.h} on the clock.`;const t=cw.querySelector(`.num[data-h="${cur.h}"]`);if(t)t.classList.add('glow')}}}));
+    return{round(i){cur=ROUNDS[i];opts.innerHTML='';tip.textContent='';cw.querySelectorAll('.num.glow').forEach(n=>n.classList.remove('glow'));act.textContent=`Time to ${cur.act}!`;
       if(cur.t==='read'){cw.classList.remove('setmode');setHour(cur.h);
         const set=new Set([cur.h]);while(set.size<3){set.add(KG.rnd(1,12))}
         KG.shuffle([...set]).forEach(h=>{const b=KG.el('button','kg-card',`<span class="w">${h} o’clock</span><span class="d">${h}:00</span>`);b.onclick=()=>{if(api.locked)return;

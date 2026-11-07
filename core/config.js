@@ -88,19 +88,29 @@
   }
 
   /* ---------------- stars (used by every game) ----------------
-     accuracy = first-try correct / questions. Each hint (shown after 2 wrong
-     tries) costs a little accuracy but never blocks finishing.              */
+     Each question earns credit: right on the first try = 1, on the second
+     try = oneMiss, after a hint (shown after 2 wrong tries) = oneMiss minus
+     hintPenalty. accuracy = credit / questions. Finishing always earns ★.
+       ★★★ accuracy ≥ 90%   ★★ ≥ 70%   ★ finished                         */
   const STARS = {
-    three: 0.90,          // ≥ 90% → ★★★
-    two: 0.70,            // ≥ 70% → ★★
-    hintPenalty: 0.25,    // a hinted question counts as 0.75 of a question… (applied in the shell)
-    min: 1                // finishing always earns at least ★
+    three: 0.90,
+    two: 0.70,
+    oneMiss: 0.5,         // credit for a question answered on the 2nd try
+    hintPenalty: 0.25,    // a hinted question earns 0.5 - 0.25 = 0.25
+    min: 1
   };
-  function starsFor(correct, total) {
+  /** credit for one question, given how many wrong tries came first */
+  function creditFor(misses) { return misses <= 0 ? 1 : misses === 1 ? STARS.oneMiss : Math.max(0, STARS.oneMiss - STARS.hintPenalty); }
+  /** starsFor(credit, questions) — credit may be fractional */
+  function starsFor(credit, total) {
     if (!total) return STARS.min;
-    const a = correct / total;
+    const a = credit / total + 1e-9;
     return a >= STARS.three ? 3 : a >= STARS.two ? 2 : STARS.min;
   }
 
-  CH.config = { GAMES, byId, HOSTS, UNLOCK, STARS, isUnlocked, isCompleted, nextStop, unlockMode, starsFor, game: id => byId[id] || null };
+  /* Race only: an optional friendly "speedy bonus" clock (Grown-ups' Corner →
+     settings.bonusTimer, off by default). It never costs stars.            */
+  const BONUS = { seconds: 12 };
+
+  CH.config = { GAMES, byId, HOSTS, UNLOCK, STARS, BONUS, isUnlocked, isCompleted, nextStop, unlockMode, starsFor, creditFor, game: id => byId[id] || null };
 })();

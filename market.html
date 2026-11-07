@@ -38,7 +38,7 @@ KG.game({id:'market',title:'Market Day Adventure',tag:'Money',scene:'market',son
     const fruit=KG.$('#fruit'),tray=KG.$('#tray'),purse=KG.$('#purse'),totalEl=KG.$('#total');let cur,sum=0,busy=false;
     function upd(){totalEl.textContent='₱'+sum;totalEl.classList.toggle('over',sum>cur.p)}
     function check(){if(sum===cur.p){api.lock();KG.sfx.coin();api.correct({el:tray,line:`₱${cur.p}! That’s exactly right. Here is your ${cur.f}!`})}
-      else if(sum>cur.p){api.wrong({el:tray,line:`Oops, ₱${sum} is too much! The ${cur.f} costs ₱${cur.p}. Tap a coin to take it back.`})}}
+      else if(sum>cur.p){const n=api.wrong({el:tray,line:`Oops, ₱${sum} is too much! The ${cur.f} costs ₱${cur.p}. Tap a coin to take it back.`});if(n>=2){const last=[...tray.querySelectorAll('.c')].pop();if(last)last.classList.add('glow')}}}
     return{round(i){cur=ROUNDS[i];sum=0;tray.querySelectorAll('.c').forEach(c=>c.remove());upd();
       fruit.innerHTML=`${F[cur.f]}<span class="nm">${cur.f}</span><span class="tag">₱${cur.p}</span>`;
       purse.innerHTML='';cur.c.forEach(v=>{const b=KG.el('button','kg-card',KG.coinSVG(v));b.setAttribute('aria-label',v+' peso coin');
