@@ -202,6 +202,47 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
   padding:.3em .7em;border:4px solid var(--paper-edge);border-radius:var(--r-md);background:#fff}
 .ch-input:focus-visible{border-color:var(--focus)}
 
+/* ========================= player profiles ========================= */
+.ch-avatar{display:block;width:100%;height:100%}
+/* big "tap your face" card on Who's playing */
+.ch-pcard{display:grid;justify-items:center;align-content:start;gap:8px;min-width:var(--tap);min-height:var(--tap);padding:14px 10px 16px;
+  border:0;border-radius:var(--r-lg);background:var(--paper);color:var(--ink);cursor:pointer;
+  box-shadow:inset 0 -7px 0 var(--paper-edge),var(--lift);transition:transform var(--dur-1),box-shadow var(--dur-1)}
+.ch-pcard .pic{width:clamp(84px,22vw,120px);aspect-ratio:1;border-radius:50%;overflow:hidden;box-shadow:0 0 0 5px #fff,0 4px 0 6px rgba(42,31,61,.15)}
+.ch-pcard .nm{font-family:var(--display);font-size:var(--fs-lg);line-height:1.05;max-width:100%;overflow-wrap:anywhere;text-align:center}
+.ch-pcard .sub{font-weight:700;font-size:var(--fs-xs);color:var(--ink-soft);display:flex;align-items:center;gap:4px}
+.ch-pcard .sub svg{width:18px;height:18px}
+.ch-pcard:active,.ch-pcard.is-pressed{transform:translateY(4px);box-shadow:inset 0 -3px 0 var(--paper-edge),var(--lift-pressed)}
+@media (hover:hover){.ch-pcard:hover{transform:translateY(-4px) rotate(-.6deg)}}
+.ch-pcard--add{background:rgba(255,253,246,.6);box-shadow:inset 0 0 0 4px rgba(110,67,34,.35);border:0}
+.ch-pcard--add .pic{display:grid;place-items:center;background:var(--cream);box-shadow:inset 0 0 0 4px var(--paper-edge)}
+.ch-pcard--add .pic svg{width:46%;height:46%;color:var(--leaf)}
+.ch-pcard.is-new{animation:ch-bounce .6s var(--ease-bounce) 2}
+/* small "who's playing" chip for top bars: tap to switch player */
+.ch-player{display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);padding:6px 16px 6px 6px;max-width:min(260px,50vw);
+  border:0;border-radius:var(--r-pill);background:var(--paper);color:var(--ink);cursor:pointer;text-decoration:none;
+  box-shadow:inset 0 -5px 0 var(--paper-edge),var(--lift)}
+.ch-player .pic{flex:none;width:58px;height:58px;border-radius:50%;overflow:hidden}
+.ch-player .nm{font-family:var(--display);font-size:var(--fs-md);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-player:active{transform:translateY(3px);box-shadow:inset 0 -2px 0 var(--paper-edge),var(--lift-pressed)}
+/* avatar picker (grown-up form) */
+.ch-avpick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.ch-avpick button{aspect-ratio:1;min-width:0;min-height:var(--tap);padding:4px;border:0;border-radius:50%;background:transparent;cursor:pointer;
+  box-shadow:0 0 0 3px transparent;transition:transform var(--dur-1)}
+.ch-avpick button[aria-checked="true"]{box-shadow:0 0 0 5px var(--leaf),0 0 0 9px #fff;transform:scale(1.04)}
+.ch-avpick button[aria-checked="true"]::after{content:"✓";position:absolute;right:-2px;bottom:-2px;width:26px;height:26px;border-radius:50%;background:var(--leaf);color:#fff;font:700 16px/26px var(--body);text-align:center}
+.ch-avpick button{position:relative}
+@media (max-width:420px){.ch-avpick{grid-template-columns:repeat(4,1fr)}}
+.ch-seg{display:flex;gap:8px;flex-wrap:wrap}
+.ch-seg .ch-btn{font-family:var(--body);font-weight:700;font-size:var(--fs-lg);min-width:var(--tap)}
+.ch-seg .ch-btn[aria-pressed="true"]{--bg:var(--sky);--bg-d:var(--sky-d);--fg:#fff}
+.ch-field{display:grid;gap:6px}
+.ch-field>label,.ch-field>.lbl{font-weight:700;font-size:var(--fs-sm)}
+.ch-field .help{font-size:var(--fs-xs);color:var(--ink-soft);font-weight:500}
+.ch-err{color:var(--heart-d);font-weight:700;min-height:1.3em}
+.ch-err:not(:empty)::before{content:"⚠ "}
+.ch-notice{background:#fff4d6;border-left:6px solid var(--gold-d);border-radius:var(--r-sm);padding:10px 14px;font-weight:600;font-size:var(--fs-sm);color:var(--ink)}
+
 /* ======================== micro-animations ======================== */
 .ch-bounce{animation:ch-bounce .45s var(--ease-bounce)}
 .ch-wobble{animation:ch-wobble .5s ease-in-out}

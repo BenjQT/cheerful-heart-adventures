@@ -186,6 +186,8 @@ button:focus-visible{outline:4px solid #fff;outline-offset:3px;box-shadow:0 0 0 
   </div>
 </div>
 
+<script src="core/store.js"></script>
+<script src="core/voice.js"></script>
 <script src="core/ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -528,10 +530,12 @@ let duckTimer=0,speakTimer=0;
 const VSTYLE={wynea:{p:1.78,r:1.1},ali:{p:1.9,r:1.06},matthew:{p:1.6,r:1.12}};
 function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?.075:.16,actx.currentTime,.12)}
 function say(text,queue,onstart,who){
-  who=who||leaderId;if(!soundOn||!speechOK){onstart&&onstart();return}
+  who=who||leaderId;if(!soundOn){onstart&&onstart();return}
+  if(window.CH&&CH.voice){CH.voice.speak(text,{who,queue:!!queue,onstart});return}
+  if(!speechOK){onstart&&onstart();return}
   const st=VSTYLE[who]||VSTYLE.wynea,parts=(text.match(/[^.!?]+[.!?]*/g)||[text]).map(x=>x.trim()).filter(Boolean);
   const go=()=>{try{if(!queue)speechSynthesis.cancel();
-    parts.forEach((ph,i)=>{const u=new SpeechSynthesisUtterance(ph.replace(/Wynea/g,'Wih-neh-yah')),v=who==='matthew'?voiceM:voice;if(v)u.voice=v;
+    parts.forEach((ph,i)=>{const u=new SpeechSynthesisUtterance(ph.replace(/Wynea/gi,'Wee-neh-yah')/* fallback only: used if core/voice.js is missing */),v=who==='matthew'?voiceM:voice;if(v)u.voice=v;
       const ex=/!$/.test(ph),q=/\?$/.test(ph),num=/\d/.test(ph),short=ph.length<9;
       u.pitch=Math.min(2,st.p+(ex?.16:0)+(q?.22:0)+(num?.1:0)+(Math.random()-.5)*.1);
       u.rate=Math.min(1.4,st.r+(ex?.07:0)+(short?.06:0));
@@ -559,7 +563,7 @@ function fitCamera(){const aspect=innerWidth/innerHeight;camera.aspect=aspect;ca
 
 function startLevel(idx){
   winTimers.forEach(clearTimeout);winTimers=[];
-  levelIdx=idx;level=LEVELS[idx];progress=0;wrongCount=0;firstTry=0;hintClock=0;lastCollected=null;
+  levelIdx=idx;level=LEVELS[idx];progress=0;wrongCount=0;firstTry=0;hintsUsed=0;levelStartedAt=Date.now();hintClock=0;lastCollected=null;
   const defs=buildWorld(level);applyTheme(level.theme);spawnStars(defs);placeHeroes();fitCamera();
   if(confetti){scene.remove(confetti.mesh);confetti=null}
   state='play';$('#title').hidden=true;$('#win').hidden=true;$('#hud').hidden=false;
@@ -606,8 +610,9 @@ function wrong(s){
   const line=`Oopsie! That one is ${s.n}. We need ${n}!`;talk(who,line);
   if(wrongCount>=2)setTimeout(()=>{if(state==='play'&&curTarget()===n)hint()},1800);
 }
+let hintsUsed=0,levelStartedAt=Date.now();
 function hint(){
-  const n=curTarget();const s=stars.find(x=>x.n===n&&!x.collected);if(!s)return;
+  const n=curTarget();const s=stars.find(x=>x.n===n&&!x.collected);if(!s)return;if(!s.hinted)hintsUsed++;
   s.hinted=true;s.ar.visible=true;hintClock=0;
   const prev=progress>0?level.seq[progress-1]:null;let line;
   if(prev===null)line=`Hmm, where is ${n}? Follow the pink arrow!`;
@@ -630,6 +635,7 @@ function finishLevel(){
   if(level.dir<0)winTimers.push(setTimeout(()=>{say('Three, two, one... Blast off!',true,null,'matthew');sfx.whoosh();for(let k=0;k<6;k++)setTimeout(()=>sparkle(new THREE.Vector3((Math.random()-.5)*W*.7,7+Math.random()*3,(Math.random()-.5)*D*.5),[0xff8ac0,0xffe066,0x9fd8ff,0xc6a8ff][k%4],70,5,.3),k*260)},end));
   winTimers.push(setTimeout(()=>{const T=levelTier();if(T.tier==='high'){sfx.fanfare();endfx.applause(4.5);endfx.fireworks(6,k=>sparkle(new THREE.Vector3((Math.random()-.5)*W*.7,7+Math.random()*3,(Math.random()-.5)*D*.5),[0xff8ac0,0xffe066,0x9fd8ff,0xc6a8ff,0x9dff9a,0xffb070][k%6],90,5.5,.32));burstConfetti();chain().forEach(h=>h.cheer=4)}else{endfx.sad();if(T.tier==='low')setTimeout(()=>endfx.rain(5),1200)}},end+(level.dir<0?900:0)));
   winTimers.push(setTimeout(showWin,end+(level.dir<0?2100:1300)));
+  {const T=levelTier(),st=T.tier==='high'?3:T.tier==='mid'?2:1;if(window.CH&&CH.store&&CH.store.activeId())CH.store.recordSession('star-map',{startedAt:new Date(levelStartedAt).toISOString(),durationSec:Math.round((Date.now()-levelStartedAt)/1000),correct:firstTry,total:level.seq.length,hintsUsed,stars:st,level:level.name})}
   if(levelTier().tier!=='low'){prog.won[levelIdx]=true;prog.unlocked=Math.max(prog.unlocked,Math.min(LEVELS.length,levelIdx+2))}saveProg();
 }
 function showWin(){

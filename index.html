@@ -1,26 +1,49 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="css/theme.css"></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cheerful Heart Adventures</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Join Ali, Wynea and Matthew on 12 math adventures that get kindergarteners ready for Grade 1.">
+<meta name="theme-color" content="#6ab8ff">
+<link rel="stylesheet" href="css/theme.css">
 <style>
-/* Layout: voxel meadow sky behind; hero banner with the three friends, then a 12-game card grid on a wooden board. */
-html,body{height:auto!important;overflow-x:hidden!important;overflow-y:auto!important}
-body{background:#6ab8ff}
-.hub{position:relative;z-index:1;width:min(1100px,100%);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 32px;display:grid;gap:18px}
-.bar{display:flex;align-items:center;gap:10px}
+/* Screens: title → Who's playing? → hub (the hub becomes the adventure map in Phase 3). */
+html,body{height:auto!important;min-height:var(--vh);overflow-x:hidden!important;overflow-y:auto!important}
+body{background:#6ab8ff;overscroll-behavior-y:none}
+.screen{position:relative;z-index:1;min-height:var(--vh);width:min(1100px,100%);margin:0 auto;
+  padding:calc(var(--safe-t) + 14px) var(--gutter-r) calc(var(--safe-b) + 28px) var(--gutter-l)}
+
+/* ---- title ---- */
+#scr-title{display:grid;align-content:center;justify-items:center;gap:clamp(12px,3vh,24px);text-align:center}
+#scr-title .eyebrow{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:var(--fs-sm);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--heart);padding:.35em .9em;border-radius:999px;box-shadow:inset 0 -3px 0 var(--heart-d)}
+#scr-title .trio{display:flex;align-items:flex-end;justify-content:center;height:clamp(150px,34vh,330px)}
+#scr-title .trio img{height:100%;width:auto;margin:0 -12px;filter:drop-shadow(0 8px 0 rgba(42,31,61,.2));transform-origin:50% 100%;transform:translateY(calc(var(--kick)*-8px))}
+#scr-title .trio img:nth-child(2){height:108%}
+@media (max-height:520px) and (orientation:landscape){#scr-title{grid-template-columns:1fr 1fr;align-items:center}#scr-title .trio{grid-row:span 3;order:2}}
+
+/* ---- who's playing ---- */
+#scr-who{display:grid;align-content:start;gap:clamp(12px,2.6vh,22px)}
+.who-head{display:flex;align-items:center;gap:var(--gap-3);padding-right:calc(var(--tap) + 8px)}
+.who-head .face{flex:none;width:clamp(64px,14vw,96px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#fff;border:4px solid var(--wynea);box-shadow:var(--lift);padding:0;cursor:pointer}
+.who-head .face img{width:100%;height:100%;object-fit:cover}
+.who-head h1{margin:0;font-family:var(--display);font-weight:400;font-size:var(--fs-xl);color:#fff;text-shadow:0 3px 0 var(--wood-d),2px 0 0 var(--wood-d),-2px 0 0 var(--wood-d),0 -2px 0 var(--wood-d)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(150px,42vw),1fr));gap:clamp(12px,2.4vw,20px)}
+
+/* ---- hub (unchanged look, now per-player) ---- */
+#scr-hub{display:grid;gap:18px}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-right:calc(var(--tap) + 10px)}
 .bar .sp{flex:1}
-.prog{font-weight:700;color:#fff;background:rgba(42,31,61,.55);padding:.35em .9em;border-radius:999px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
-.prog svg{width:20px;height:20px}
+.prog{font-weight:700;color:#fff;background:rgba(42,31,61,.6);padding:.4em 1em;border-radius:999px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;min-height:44px}
+.prog svg{width:22px;height:22px}
 .hero{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:10px}
 .hero .copy{display:grid;gap:12px;justify-items:start}
-.eyebrow{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:clamp(.78rem,2.6vw,.95rem);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--heart);padding:.35em .9em;border-radius:999px;box-shadow:inset 0 -3px 0 var(--heart-d)}
-.hero h1{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(2.6rem,8vw,5rem);line-height:.95;color:var(--gold);text-wrap:balance;text-shadow:0 4px 0 var(--wood-d),3px 0 0 var(--wood-d),-3px 0 0 var(--wood-d),0 -3px 0 var(--wood-d),3px 3px 0 var(--wood-d),-3px 3px 0 var(--wood-d),3px -3px 0 var(--wood-d),-3px -3px 0 var(--wood-d),0 10px 0 rgba(42,31,61,.22)}
-.hero p{margin:0;max-width:40ch;font-weight:600;font-size:clamp(1rem,3vw,1.15rem);line-height:1.4;color:var(--ink);background:rgba(255,253,246,.88);padding:10px 14px;border-radius:14px;box-shadow:0 4px 0 rgba(42,31,61,.15)}
-.trio{display:flex;align-items:flex-end;justify-content:center;height:clamp(180px,34vw,330px)}
-.trio button{border:0;background:none;padding:0;height:100%;margin:0 -12px;display:flex;align-items:flex-end}
+.hero h1{font-size:clamp(2.4rem,7vw,4.6rem)}
+.trio{display:flex;align-items:flex-end;justify-content:center;height:clamp(170px,32vw,320px)}
+.trio button{border:0;background:none;padding:0;height:100%;margin:0 -12px;display:flex;align-items:flex-end;cursor:pointer}
 .trio img{height:100%;width:auto;filter:drop-shadow(0 8px 0 rgba(42,31,61,.2));transform-origin:50% 100%;transform:translateY(calc(var(--kick)*-8px)) scaleY(calc(1 - var(--kick)*.02))}
 .trio button:nth-child(2) img{height:108%}
-.trio button.cheer img{animation:kg-jump .42s ease-in-out 3}
-.trio .nm{position:absolute}
+.trio button.ch-wave img,.trio button.cheer img{animation:kg-jump .42s ease-in-out 3}
 .board{padding:clamp(12px,2.4vw,20px)}
 .board h2{margin:0 0 12px;font-family:var(--display);font-weight:400;font-size:clamp(1.3rem,4vw,1.8rem);color:#fff;text-shadow:0 2px 0 var(--wood-d)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:clamp(10px,2vw,16px)}
@@ -32,31 +55,50 @@ body{background:#6ab8ff}
 .thumb .ic{position:absolute;left:50%;top:52%;width:44%;aspect-ratio:1;transform:translate(-50%,-50%) translateY(calc(var(--kick)*-4px));filter:drop-shadow(0 5px 0 rgba(42,31,61,.3))}
 .thumb .ic svg{width:100%;height:100%;overflow:visible}
 .thumb .no{position:absolute;left:8px;top:8px;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-weight:700;background:var(--paper);box-shadow:0 3px 0 rgba(42,31,61,.25);font-variant-numeric:tabular-nums}
-.thumb .won{position:absolute;right:8px;top:8px;display:flex;gap:1px;background:rgba(42,31,61,.55);padding:3px 6px;border-radius:999px}
-.thumb .won svg{width:18px;height:18px}
+.thumb .won{position:absolute;right:8px;top:8px;background:rgba(42,31,61,.55);padding:3px 6px;border-radius:999px}
 .info{padding:10px 12px 14px;display:grid;gap:6px;align-content:start}
 .info .t{font-family:var(--display);font-size:clamp(1.12rem,3.4vw,1.3rem);line-height:1.1}
-.info .s{font-weight:600;font-size:.9rem;color:#8a6a4a}
+.info .s{font-weight:600;font-size:.9rem;color:#7a5a3a}
 .chip{justify-self:start;font-weight:700;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:.25em .7em;border-radius:999px;background:var(--c,#3f8fe0)}
-.soundon{position:fixed;z-index:10;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);animation:kg-bob 1.2s ease-in-out infinite;white-space:nowrap}
-.soundon svg{width:26px;height:26px}
-.grown{font-weight:600;color:var(--ink);background:rgba(255,253,246,.88);border-radius:14px;padding:12px 16px;line-height:1.45;font-size:.95rem;max-width:72ch}
+.greet{min-height:84px}
+.grown{font-weight:600;color:var(--ink);background:rgba(255,253,246,.9);border-radius:14px;padding:12px 16px;line-height:1.45;font-size:.95rem;max-width:72ch}
 .grown b{font-family:var(--display);font-weight:400;font-size:1.1rem}
 @media (max-width:700px){.hero{grid-template-columns:1fr}.hero .copy{justify-items:center;text-align:center}.trio{order:-1}}
 </style>
-
+</head>
+<body class="ch-app">
 <canvas id="kg-bg"></canvas>
-<div class="hub">
+
+<!-- TITLE -->
+<section class="screen" id="scr-title" hidden>
+  <span class="eyebrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/></svg>Cheerful Heart Academy</span>
+  <h1 class="ch-title">Cheerful Heart Adventures</h1>
+  <div class="trio" aria-hidden="true"><img src="img/ali-full.webp" alt="" draggable="false"><img src="img/wynea-full.webp" alt="" draggable="false"><img src="img/matthew-full.webp" alt="" draggable="false"></div>
+  <div id="title-play"></div>
+</section>
+
+<!-- WHO'S PLAYING -->
+<section class="screen" id="scr-who" hidden>
+  <div class="who-head">
+    <button class="face" id="who-face" type="button" aria-label="Hear it again"><img src="img/wynea.webp" alt="" draggable="false"></button>
+    <h1>Who’s playing?</h1>
+  </div>
+  <div id="who-notices" class="ch-stack" style="gap:8px"></div>
+  <div class="pgrid" id="pgrid"></div>
+</section>
+
+<!-- HUB -->
+<section class="screen" id="scr-hub" hidden>
   <div class="bar">
+    <span id="player-slot"></span>
     <div class="prog" id="prog"></div>
     <div class="sp"></div>
-    <button class="kg-icon" data-music id="music" aria-label="Music on or off"></button>
+    <span id="music-slot"></span>
   </div>
+  <div class="greet" id="greet"></div>
   <section class="hero">
     <div class="copy">
-      <span class="eyebrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/></svg>Cheerful Heart Academy</span>
-      <h1>Cheerful Heart Adventures</h1>
-      <p>Join Ali, Wynea and Matthew on 12 math adventures that get kindergarteners ready for Grade 1. Tap a friend to say hi, then pick a game!</p>
+      <h1 class="ch-title">Cheerful Heart Adventures</h1>
     </div>
     <div class="trio" id="trio"></div>
   </section>
@@ -64,14 +106,114 @@ body{background:#6ab8ff}
     <h2>Pick an adventure</h2>
     <div class="grid" id="grid"></div>
   </section>
-  <button class="kg-btn gold soundon" id="soundon" aria-label="Turn on sound"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9v6h4l5 4V5L8 9zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>Tap for music</button>
-  <div class="grown"><b>For grown-ups:</b> Each game takes about 3 to 5 minutes and practices one skill: counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense. The last game, the Friendship Race, reviews them all. Turn the sound on so the friends can read every instruction aloud. Stars are saved on this device.</div>
-</div>
+  <div class="grown"><b>For grown-ups:</b> Each game takes about 3 to 5 minutes and practices one skill: counting, shapes, patterns, comparing, adding and taking away, measuring, sorting, time, money, position words and number sense. The last game, the Friendship Race, reviews them all. Turn the sound on so the friends can read every instruction aloud. Each player’s stars are saved on this device.</div>
+</section>
 
-<script src="core/ui.js"></script><script src="shared.js"></script>
+<script src="core/store.js"></script>
+<script src="core/voice.js"></script>
+<script src="core/ui.js"></script>
+<script src="core/avatars.js"></script>
+<script src="shared.js"></script>
 <script>
 (function(){
-const TAGC={Counting:'#ff9330',Shapes:'#8a5cf6',Patterns:'#3f8fe0',Comparing:'#2aa198','Add & subtract':'#ff5c8d',Measuring:'#3c8228',Sorting:'#6236c9',Time:'#d63a6c',Money:'#b88a1d',Positions:'#2a68b0','Number sense':'#e05a2a',Review:'#6e4322'};
+'use strict';
+const {ui,h,store,voice}=CH,{fx}=ui;
+const esc=CH.esc;
+const scr={title:KG.$('#scr-title'),who:KG.$('#scr-who'),hub:KG.$('#scr-hub')};
+const replay=ui.replayButton({onClick:()=>{KG.ensureAudio();lastLine&&talk(lastLine.who,lastLine.html,lastLine.spoken)}});
+document.body.appendChild(replay);replay.hidden=true;
+let lastLine=null;
+
+/* speak + remember for the 🔊 button. `spoken` lets us say a child's name with its sayAs form */
+function talk(who,html,spoken,bubbleEl){
+  lastLine={who,html,spoken};
+  if(bubbleEl)bubbleEl.say(who,html,{speak:false});
+  voice.speak(spoken||html,{who});
+}
+
+/* ---------- background + music ---------- */
+const bg=KG.$('#kg-bg');const paint=()=>KG.paintBg(bg,'meadow');paint();addEventListener('resize',paint);
+KG.setSong('meadow');
+function startAudio(){KG.ensureAudio();voice.unlock();KG.startAmbient()}
+const mb=ui.iconButton({icon:'music',label:'Music on or off',toggle:true,off:!KG.musicOn(),onClick:()=>{startAudio();KG.setMusic(!KG.musicOn());mb.classList.toggle('is-off',!KG.musicOn());mb.setAttribute('aria-pressed',String(KG.musicOn()))}});
+mb.setAttribute('data-music','');KG.$('#music-slot').appendChild(mb);
+
+/* ---------- routing ---------- */
+function show(name){Object.entries(scr).forEach(([k,el])=>el.hidden=k!==name);replay.hidden=name==='title';scrollTo(0,0)}
+const entered=()=>{try{return sessionStorage.getItem('ch-in')==='1'}catch(e){return false}};
+const markEntered=()=>{try{sessionStorage.setItem('ch-in','1')}catch(e){}};
+
+/* ---------- TITLE ---------- */
+KG.$('#title-play').appendChild(ui.bigButton({label:'Play!',icon:'play',variant:'gold',size:'xl',ariaLabel:'Play',onClick:()=>{startAudio();if(KG.musicOn())KG.setMusic(true);goWho(true)}}));
+
+/* ---------- WHO'S PLAYING ---------- */
+const grid=KG.$('#pgrid');
+function goWho(intro,newId){
+  show('who');renderWho(newId);
+  const ps=store.players();
+  if(!ps.length){talk('wynea','Hi there! Let’s make your player card. Ask a grown-up to help you!');setTimeout(openAdd,500)}
+  else if(newId){const p=ps.find(x=>x.id===newId);talk('wynea',`Hi, <b>${esc(p.name)}</b>! Tap your picture to start!`,`Hi, ${voice.speakName(p)}! Tap your picture to start!`)}
+  else if(intro!==false)talk('wynea','Who’s playing? Tap your picture!');
+}
+KG.$('#who-face').onclick=()=>{KG.ensureAudio();lastLine&&talk(lastLine.who,lastLine.html,lastLine.spoken)};
+function renderWho(newId){
+  const notes=KG.$('#who-notices');notes.innerHTML='';
+  if(!store.available)notes.appendChild(h('div',{class:'ch-notice',role:'status',text:'Grown-ups: this browser is not saving progress (private browsing or storage is blocked). Children can still play, but stars will not be kept after closing.'}));
+  if(store.loadIssue==='corrupt')notes.appendChild(h('div',{class:'ch-notice',role:'status',text:'Grown-ups: the saved progress on this device could not be read, so the game started fresh. A backup copy was kept.'}));
+  if(store.migrated)notes.appendChild(h('div',{class:'ch-notice',role:'status',text:'Grown-ups: the stars already saved on this device were moved into the player “Star Friend”. You can rename it in Grown-ups’ Corner.'}));
+  grid.innerHTML='';
+  store.players().forEach(p=>{
+    const stars=Object.values(p.games).reduce((a,g)=>a+(g.bestStars||0),0);
+    const b=h('button',{type:'button',class:'ch-pcard'+(p.id===newId?' is-new':''),'aria-label':`${p.name}. Tap to play.`,
+      html:`<span class="pic">${CH.avatarSVG(p.avatar)}</span><span class="nm">${esc(p.name)}</span><span class="sub" aria-hidden="true">${ui.ICONS.star.replace('<svg','<svg class="ch-star"')} ${stars}</span>`});
+    b.addEventListener('click',()=>choose(p.id,b));grid.appendChild(ui.pressable(b));
+  });
+  const full=!store.canAddPlayer();
+  const add=h('button',{type:'button',class:'ch-pcard ch-pcard--add','aria-label':full?'Player list is full':'Add a player (grown-up help)',disabled:full||null,
+    html:`<span class="pic">${ui.ICONS.plus}</span><span class="nm">${full?'Full':'Add player'}</span><span class="sub">${full?'10 players max':'Grown-up help'}</span>`});
+  if(!full)add.addEventListener('click',()=>{startAudio();openAdd()});
+  grid.appendChild(ui.pressable(add));
+}
+function choose(id,card){
+  startAudio();fx.bounce(card);KG.sfx.pop();
+  store.setActive(id);markEntered();
+  setTimeout(()=>goHub(true),260);
+}
+
+/* ---------- ADD PLAYER (grown-up assisted) ---------- */
+function openAdd(){
+  const used=new Set(store.players().map(p=>p.avatar));
+  const free=CH.AVATARS.filter(a=>!used.has(a.id));
+  let avatar=(free.length?KG.pick(free):KG.pick(CH.AVATARS)).id,age=null;
+  const nameIn=h('input',{class:'ch-input',id:'pname',type:'text',maxlength:store.MAX_NAME,autocomplete:'off',autocapitalize:'words',spellcheck:'false',enterkeyhint:'done','aria-describedby':'pname-help perr'});
+  const count=h('span',{class:'help',id:'pname-help',text:`First name or nickname · 0/${store.MAX_NAME}`});
+  nameIn.addEventListener('input',()=>{count.textContent=`First name or nickname · ${nameIn.value.length}/${store.MAX_NAME}`;err.textContent=''});
+  const pick=h('div',{class:'ch-avpick',role:'radiogroup','aria-label':'Pick a picture'});
+  const drawPick=()=>{pick.innerHTML='';CH.AVATARS.forEach(a=>{const b=h('button',{type:'button',role:'radio','aria-checked':String(a.id===avatar),'aria-label':a.name,tabindex:a.id===avatar?'0':'-1',html:CH.avatarSVG(a.id)});
+    b.onclick=()=>{avatar=a.id;drawPick();pick.querySelector('[aria-checked="true"]').focus();KG.sfx.pop()};pick.appendChild(b)})};
+  pick.addEventListener('keydown',e=>{const i=CH.AVATARS.findIndex(a=>a.id===avatar),d={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!d)return;e.preventDefault();avatar=CH.AVATARS[(i+d+CH.AVATARS.length)%CH.AVATARS.length].id;drawPick();pick.querySelector('[aria-checked="true"]').focus()});
+  drawPick();
+  const seg=h('div',{class:'ch-seg',role:'group','aria-label':'Age (optional)'});
+  [4,5,6].forEach(n=>{const b=ui.bigButton({label:String(n),variant:'paper',ariaLabel:'Age '+n,onClick:()=>{age=age===n?null:n;[...seg.children].forEach((x,k)=>x.setAttribute('aria-pressed',String(age===k+4)))}});b.setAttribute('aria-pressed','false');seg.appendChild(b)});
+  const err=h('div',{class:'ch-err',id:'perr',role:'alert'});
+  const body=h('div',{class:'ch-stack'},[
+    h('p',{style:{margin:0},text:'Grown-up: type the child’s name, then let them pick their picture.'}),
+    h('div',{class:'ch-field'},[h('label',{for:'pname',text:'Name'}),nameIn,count]),
+    h('div',{class:'ch-field'},[h('span',{class:'lbl',text:'Picture'}),pick]),
+    h('div',{class:'ch-field'},[h('span',{class:'lbl',text:'Age (optional)'}),seg]),
+    err]);
+  const m=ui.modal({title:'Add a player',body,initialFocus:'#pname',actions:[
+    {label:'Cancel',variant:'paper'},
+    {label:'Save',variant:'leaf',icon:'plus',keepOpen:true,onClick:close=>{
+      const r=store.addPlayer({name:nameIn.value,avatar,age});
+      if(!r.ok){err.textContent=r.error==='full'?'This device already has 10 players.':'Please type a name (up to 15 letters).';fx.wobble(nameIn);nameIn.focus();return}
+      close();KG.sfx.correct(4);goWho(false,r.player.id);
+    }}]});
+  nameIn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();m.card.querySelector('.ch-modal__actions .ch-btn:last-child').click()}});
+}
+
+/* ---------- HUB ---------- */
+const TAGC={Counting:'#d9661a',Shapes:'#7a4ee6',Patterns:'#2a6fc4',Comparing:'#1e7f78','Add & subtract':'#d6336c',Measuring:'#2f7d1f',Sorting:'#5530b8',Time:'#b52a5a',Money:'#8a6410',Positions:'#1c4f91','Number sense':'#c0451a',Review:'#6e4322'};
 const C=KG.COLORS;
 const ICON={
   star:KG.starSVG(),
@@ -87,24 +229,52 @@ const ICON={
   flower:'<svg viewBox="0 0 100 100"><rect x="46" y="48" width="8" height="46" fill="#3f9a3c"/>'+[0,72,144,216,288].map((a,k)=>`<ellipse cx="50" cy="20" rx="12" ry="17" fill="${['#ff4d5e','#ff9330','#ffd23f','#3d7bff','#a66bff'][k]}" stroke="rgba(42,31,61,.5)" stroke-width="3" transform="rotate(${a} 50 36)"/>`).join('')+'<circle cx="50" cy="36" r="11" fill="#ffd23f" stroke="#9a6a08" stroke-width="3"/></svg>',
   dice:KG.diceSVG(5)
 };
-const bg=KG.$('#kg-bg');const paint=()=>KG.paintBg(bg,'meadow');paint();addEventListener('resize',paint);
-KG.setSong('meadow');
-const son=KG.$('#soundon');
-function startSound(){KG.ensureAudio();KG.startAmbient();if(!KG.musicOn())KG.setMusic(true);son.hidden=true;startedAt=Date.now();mb.classList.remove('off');removeEventListener('pointerdown',startSound,true);removeEventListener('keydown',startSound,true)}
-addEventListener('pointerdown',startSound,true);addEventListener('keydown',startSound,true);
-let startedAt=0;try{KG.ensureAudio();KG.startAmbient()}catch(e){}
-const mb=KG.$('#music');mb.innerHTML=KG.ICONS.music;mb.classList.toggle('off',!KG.musicOn());mb.onclick=e=>{e.stopPropagation();KG.ensureAudio();KG.startAmbient();if(Date.now()-startedAt>600)KG.setMusic(!KG.musicOn())};
-const total=KG.GAMES.reduce((a,g)=>a+KG.starsFor(g.id),0),done=KG.GAMES.filter(g=>KG.starsFor(g.id)>0).length;
-KG.$('#prog').innerHTML=`${KG.starSVG()} ${total} stars · ${done} of 12 played`;
-const trio=KG.$('#trio');const HI={ali:'Hi! I’m Ali! Let’s learn together!',wynea:'Hi! I’m Wynea! Pick an adventure!',matthew:'Hi! I’m Matthew! Beep boop, math time!'};
-KG.ORDER.forEach(id=>{const b=KG.el('button','',`<img src="${KG.HEROES[id].full}" alt="${KG.HEROES[id].name}">`);b.setAttribute('aria-label','Say hi to '+KG.HEROES[id].name);
-  b.onclick=()=>{KG.ensureAudio();KG.sfx.pop();b.classList.remove('cheer');void b.offsetWidth;b.classList.add('cheer');KG.say(HI[id],id)};trio.appendChild(b)});
-const grid=KG.$('#grid');
-KG.GAMES.forEach((g,i)=>{const st=KG.starsFor(g.id);const a=KG.el('a','game');a.href=g.file;
-  a.innerHTML=`<div class="thumb"><canvas width="160" height="90"></canvas><div class="ic">${ICON[g.icon]}</div><div class="no">${i+1}</div>${st?`<div class="won">${[0,1,2].map(k=>k<st?KG.starSVG():KG.starSVG('rgba(255,255,255,.3)','rgba(255,255,255,.5)')).join('')}</div>`:''}</div><div class="info"><span class="chip" style="--c:${TAGC[g.tag]}">${g.tag}</span><span class="t">${g.title}</span><span class="s">${g.skill}</span></div>`;
-  KG.drawScene(a.querySelector('canvas'),g.scene,i);
-  a.addEventListener('click',e=>{KG.ensureAudio();KG.sfx.pop()});grid.appendChild(a)});
+const greet=ui.bubble();KG.$('#greet').appendChild(greet);greet.setCaptions(store.setting('captions'));
+const HI={ali:['Hi! I’m Ali! Let’s learn together!','You’re doing great, friend!','I love counting with you!'],
+  wynea:['Hi! I’m Wynea! Pick an adventure!','Let’s go explore!','I’m ready for an adventure!'],
+  matthew:['Beep boop! I’m Matthew!','My brain meter says math time!','Kaboom! Let’s play!']};
+const trio=KG.$('#trio');
+KG.ORDER.forEach(id=>{const b=h('button',{type:'button','aria-label':'Say hi to '+KG.HEROES[id].name,html:`<img src="${KG.HEROES[id].full}" alt="" draggable="false">`});
+  b.onclick=()=>{startAudio();KG.sfx.pop();fx.wave(b);talk(id,KG.pick(HI[id]),null,greet)};trio.appendChild(b)});
+
+function goHub(doGreet){
+  const p=store.activePlayer();if(!p){goWho();return}
+  show('hub');
+  const slot=KG.$('#player-slot');slot.innerHTML='';
+  const pb=h('button',{type:'button',class:'ch-player','aria-label':`Playing as ${p.name}. Tap to switch player.`,html:`<span class="pic">${CH.avatarSVG(p.avatar)}</span><span class="nm">${esc(p.name)}</span>`});
+  pb.onclick=()=>{startAudio();KG.sfx.pop();goWho()};slot.appendChild(ui.pressable(pb));
+  const games=p.games||{};
+  const total=KG.GAMES.reduce((a,g)=>a+((games[g.id]||{}).bestStars||0),0),done=KG.GAMES.filter(g=>(games[g.id]||{}).completed).length;
+  KG.$('#prog').innerHTML=`${KG.starSVG()} ${total} stars · ${done} of 12 played`;
+  const grid=KG.$('#grid');grid.innerHTML='';
+  KG.GAMES.forEach((g,i)=>{const st=(games[g.id]||{}).bestStars||0;const a=KG.el('a','game');a.href=g.file;a.setAttribute('aria-label',`${i+1}. ${g.title}. ${g.skill}. ${st} of 3 stars.`);
+    a.innerHTML=`<div class="thumb"><canvas width="160" height="90"></canvas><div class="ic">${ICON[g.icon]}</div><div class="no">${i+1}</div>${st?'<div class="won"></div>':''}</div><div class="info"><span class="chip" style="--c:${TAGC[g.tag]}">${g.tag}</span><span class="t">${g.title}</span><span class="s">${g.skill}</span></div>`;
+    if(st)a.querySelector('.won').appendChild(ui.starRating(st,{size:18}));
+    KG.drawScene(a.querySelector('canvas'),g.scene,i);
+    a.addEventListener('click',()=>{KG.ensureAudio();KG.sfx.pop()});grid.appendChild(a)});
+  if(doGreet){
+    const who=KG.pick(KG.ORDER),n=esc(p.name),s=voice.speakName(p);
+    const L={ali:[`Hi, <b>${n}</b>! Ready for an adventure?`,`Hi, ${s}! Ready for an adventure?`],
+      wynea:[`Hooray, <b>${n}</b> is here! Let’s explore!`,`Hooray, ${s} is here! Let’s explore!`],
+      matthew:[`Beep boop! Hello, <b>${n}</b>! Let’s do some math!`,`Beep boop! Hello, ${s}! Let’s do some math!`]}[who];
+    talk(who,L[0],L[1],greet);
+    const btn=trio.children[KG.ORDER.indexOf(who)];fx.cheer(btn);fx.confetti(2200);
+  }else{greet.say('wynea',`Welcome back, <b>${esc(p.name)}</b>! Pick an adventure!`,{speak:false});lastLine={who:'wynea',html:`Welcome back, ${p.name}! Pick an adventure!`,spoken:`Welcome back, ${voice.speakName(p)}! Pick an adventure!`}}
+}
+
+/* keep the hub fresh if another tab (e.g. Grown-ups' Corner) changes data */
+store.onChange(t=>{if(t==='external'){if(!scr.hub.hidden)goHub(false);else if(!scr.who.hidden)renderWho()}});
+
+/* audio may only start after a tap: any first tap wakes it */
+function firstTap(){startAudio();removeEventListener('pointerdown',firstTap,true);removeEventListener('keydown',firstTap,true)}
+addEventListener('pointerdown',firstTap,true);addEventListener('keydown',firstTap,true);
+
+/* ---------- boot ---------- */
+addEventListener('hashchange',()=>{if(location.hash==='#who'){history.replaceState(null,'',location.pathname);goWho()}});
+if(location.hash==='#who'){history.replaceState(null,'',location.pathname);goWho(false)}
+else if(entered()&&store.activeId())goHub(false);
+else show('title');
 })();
 </script>
-
-</body></html>
+</body>
+</html>

@@ -252,11 +252,14 @@ function pickVoice(){if(!speechOK)return;const vs=speechSynthesis.getVoices();vo
 if(speechOK){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 let duckTimer=0,speakTimer=0;const SPEECH_LAG=.09;
 function duck(on){if(!musGain||!musicOn)return;musGain.gain.setTargetAtTime(on?.075:.16,actx.currentTime,.12)}
+/* All speech goes through CH.voice (core/voice.js): one voice picker, one pronunciation dictionary. */
+if(window.CH&&CH.voice){CH.voice.on('start',()=>duck(true));CH.voice.on('end',()=>duck(false))}
 KG.say=function(text,who,opt){opt=opt||{};who=who||'wynea';const plain=text.replace(/<[^>]+>/g,'');
+  if(window.CH&&CH.voice){CH.voice.speak(plain,{who,queue:!!opt.queue,rate:1+(opt.rate||0),onstart:opt.onstart});return}
   if(!speechOK){opt.onstart&&opt.onstart();return}
   const st=HEROES[who]||HEROES.wynea,parts=(plain.match(/[^.!?]+[.!?]*/g)||[plain]).map(x=>x.trim()).filter(Boolean);
   const go=()=>{try{if(!opt.queue)speechSynthesis.cancel();
-    parts.forEach((ph,i)=>{const u=new SpeechSynthesisUtterance(ph.replace(/Wynea/g,'Wih-neh-yah')),v=who==='matthew'?voiceM:voice;if(v)u.voice=v;
+    parts.forEach((ph,i)=>{const u=new SpeechSynthesisUtterance(ph.replace(/Wynea/gi,'Wee-neh-yah')),v=who==='matthew'?voiceM:voice;if(v)u.voice=v;/* fallback only: used if core/voice.js is missing */
       const ex=/!$/.test(ph),q=/\?$/.test(ph),num=/\d/.test(ph),short=ph.length<9;
       u.pitch=Math.min(2,st.p+(ex?.16:0)+(q?.22:0)+(num?.1:0)+(Math.random()-.5)*.1);u.rate=Math.min(1.4,st.r+(ex?.07:0)+(short?.06:0)+(opt.rate||0));
       if(i===0)u.onstart=()=>{duck(true);opt.onstart&&opt.onstart()};
@@ -265,7 +268,7 @@ KG.say=function(text,who,opt){opt=opt||{};who=who||'wynea';const plain=text.repl
     clearTimeout(duckTimer);duckTimer=setTimeout(()=>duck(false),10000)}catch(e){opt.onstart&&opt.onstart()}};
   if(opt.queue||opt.now)go();else{clearTimeout(speakTimer);speakTimer=setTimeout(go,Math.max(0,KG.secToNext(2)-SPEECH_LAG)*1000)}
 };
-KG.stopSpeech=()=>{clearTimeout(speakTimer);if(speechOK)speechSynthesis.cancel()};
+KG.stopSpeech=()=>{clearTimeout(speakTimer);if(window.CH&&CH.voice)CH.voice.cancel();else if(speechOK)speechSynthesis.cancel()};
 
 /* ---------------- beat loop ---------------- */
 (function loop(){const k=Math.pow(1-KG.beatPhase(),3);document.documentElement.style.setProperty('--kick',k.toFixed(3));requestAnimationFrame(loop)})();
@@ -375,7 +378,7 @@ KG.game=function(def){
     const words=html.split(' '),t=++tok;clearInterval(typeTimer);txt.innerHTML='';
     setTimeout(()=>{if(t!==tok)return;let i=0;typeTimer=setInterval(()=>{if(t!==tok||i>=words.length){clearInterval(typeTimer);return}i++;txt.innerHTML=words.slice(0,i).join(' ');if(i%2===1)tone(H.notes[(i>>1)%4],.07,{type:'triangle',g:.03})},beatLen()/4*1000)},KG.secToNext(2)*1000)}
   function setTalk(who,sec){Object.values(castImg).forEach(i=>i.classList.remove('talk'));const i=castImg[who];if(!i)return;i.classList.add('talk');clearTimeout(talkT[who]);talkT[who]=setTimeout(()=>i.classList.remove('talk'),sec*1000)}
-  let firstTry=0,repeatLine=null,round=0,misses=0,roundMiss=0,locked=true,finished=false,introLine=null;
+  let firstTry=0,repeatLine=null,round=0,misses=0,roundMiss=0,locked=true,finished=false,introLine=null,startedAt=0,hints=0;
   const api={stage,rounds:def.rounds||8,get round(){return round},get locked(){return locked},
     hero:k=>KG.ORDER[((k%3)+3)%3],
     talk(who,text){if(introLine){text=introLine+' '+text;introLine=null}bubble(who,text);KG.say(text,who);setTalk(who,text.split(' ').length*.36+.8)},
@@ -385,12 +388,13 @@ KG.game=function(def){
     correct(o){o=o||{};if(locked&&!o.force)return false;locked=true;if(roundMiss===0)firstTry++;KG.sfx.correct(round);if(o.el){KG.sparkle(o.el);o.el.classList.remove('pop');void o.el.offsetWidth;o.el.classList.add('pop')}
       const who=o.who||api.hero(round+1);api.cheer(who);api.talk(who,o.line||KG.praise(who));renderPips(round+1);
       if(o.stay)return true;setTimeout(api.next,o.delay||2200);return true},
-    wrong(o){o=o||{};misses++;roundMiss++;KG.sfx.wrong();if(o.el){o.el.classList.remove('shake');void o.el.offsetWidth;o.el.classList.add('shake')}api.talk(o.who||api.hero(round+2),o.line||'Oopsie! Try again!');return roundMiss},
+    wrong(o){o=o||{};misses++;roundMiss++;if(roundMiss===2)hints++;KG.sfx.wrong();if(o.el){o.el.classList.remove('shake');void o.el.offsetWidth;o.el.classList.add('shake')}api.talk(o.who||api.hero(round+2),o.line||'Oopsie! Try again!');return roundMiss},
     get roundMisses(){return roundMiss},
     next(){if(finished)return;round++;roundMiss=0;if(round>=api.rounds){api.finish();return}renderPips(round);locked=false;inst.round(round)},
     finish(){if(finished)return;finished=true;locked=true;renderPips(api.rounds);
       const right=Math.min(api.rounds,firstTry),pct=Math.round(right/api.rounds*100),tier=pct>=80?'high':pct>=50?'mid':'low',stars=tier==='high'?3:tier==='mid'?2:1;
       KG.prog.won[def.id]=Math.max(KG.prog.won[def.id]||0,stars);KG.save();
+      if(window.CH&&CH.store&&CH.store.activeId())CH.store.recordSession(def.id,{startedAt:new Date(startedAt||Date.now()).toISOString(),durationSec:Math.round((Date.now()-(startedAt||Date.now()))/1000),correct:right,total:api.rounds,hintsUsed:hints,stars});
       setTimeout(()=>{const idx=KG.GAMES.findIndex(g=>g.id===def.id),nx=KG.GAMES[(idx+1)%KG.GAMES.length];const w=api.hero(1);
         Object.values(castImg).forEach(i=>i.classList.remove('sad','cheer','talk'));
         let title,text,say,btns;
@@ -415,7 +419,7 @@ KG.game=function(def){
   $('#kg-repeat').onclick=()=>{KG.ensureAudio();if(repeatLine)api.talk(repeatLine.who,repeatLine.text)};
   document.querySelector('[data-music]').onclick=()=>{KG.ensureAudio();KG.setMusic(!musicOn)};
   const inst=def.build(stage,api);
-  $('#kg-play').onclick=()=>{KG.ensureAudio();KG.sfx.pop();intro.hidden=true;round=0;misses=0;renderPips(0);introLine=def.intro?def.intro.text:null;locked=false;inst.round(0);if(introLine){const w=def.intro.who;api.talk(w,'');}};
+  $('#kg-play').onclick=()=>{KG.ensureAudio();if(window.CH&&CH.voice)CH.voice.unlock();startedAt=Date.now();hints=0;KG.sfx.pop();intro.hidden=true;round=0;misses=0;renderPips(0);introLine=def.intro?def.intro.text:null;locked=false;inst.round(0);if(introLine){const w=def.intro.who;api.talk(w,'');}};
   setTimeout(()=>intro.querySelector('#kg-play').focus(),300);
   return api;
 };
