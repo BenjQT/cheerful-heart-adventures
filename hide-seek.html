@@ -1,8 +1,18 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="48x48" href="img/icons/favicon-48.png">
+<link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cheerful Heart">
+<meta name="format-detection" content="telephone=no">
+<script src="core/pwa.js" defer></script>
+<meta name="theme-color" content="#6ab8ff">
 <title>Hide-and-Seek Village</title>
 <style>
-.hs{width:min(680px,100%,calc((100vh - 330px)*1.6));aspect-ratio:16/10;position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(#bfe6ff 0 62%,#7cc35a 62% 100%);border:4px solid #6e4322;box-shadow:0 8px 0 rgba(42,31,61,.25)}
+.hs{width:min(680px,100%,calc((var(--vh,100vh) - 330px)*1.6));aspect-ratio:16/10;position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(#bfe6ff 0 62%,#7cc35a 62% 100%);border:4px solid #6e4322;box-shadow:0 8px 0 rgba(42,31,61,.25)}
 .hs::after{content:"";position:absolute;left:0;right:0;top:62%;height:6px;background:#5aa33c}
 .obj{position:absolute;z-index:2}
 .obj svg{width:100%;height:100%;display:block}

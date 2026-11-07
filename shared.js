@@ -214,7 +214,7 @@ KG.ensureAudio=function(){
   if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=soundOn?SFX:0;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musLevel();musGain.connect(master);
     nextNote=actx.currentTime+.12;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;
     if(window.CH&&CH.voice)CH.voice.unlock()}catch(e){actx=null}}
-  else if(actx.state==='suspended')actx.resume();
+  else if(actx.state!=='running'){try{actx.resume()}catch(e){}}   // 'suspended', or iOS 'interrupted' after a call/background
 };
 function tone(f,dur,o){if(!actx)return;o=o||{};const type=o.type||'sine',g=o.g==null?.25:o.g,when=o.when||0,dest=o.dest||sfxGain,attack=o.attack||.012,slide=o.slide||0;const t=actx.currentTime+when;const os=actx.createOscillator(),a=actx.createGain();os.type=type;os.frequency.setValueAtTime(f,t);if(slide)os.frequency.exponentialRampToValueAtTime(f*slide,t+dur);a.gain.setValueAtTime(.0001,t);a.gain.exponentialRampToValueAtTime(g,t+attack);a.gain.exponentialRampToValueAtTime(.0001,t+dur);os.connect(a);a.connect(dest);os.start(t);os.stop(t+dur+.05)}
 function noise(when,dur,g,freq,dest){if(!actx||!noiseBuf)return;const src=actx.createBufferSource(),f=actx.createBiquadFilter(),gn=actx.createGain();src.buffer=noiseBuf;f.type='highpass';f.frequency.value=freq||7000;const t=actx.currentTime+when;gn.gain.setValueAtTime(g,t);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);src.connect(f);f.connect(gn);gn.connect(dest||sfxGain);src.start(t);src.stop(t+dur+.02)}
@@ -278,11 +278,19 @@ KG.say=function(text,who,opt){opt=opt||{};who=who||'wynea';
   CH.voice.speak(String(text),{who,queue:!!opt.queue,rate:1+(opt.rate||0),onstart:opt.onstart});
 };
 KG.stopSpeech=()=>{if(window.CH&&CH.voice)CH.voice.cancel()};
+/* iOS/Android: pause sound in the background, wake it on the next tap */
+document.addEventListener('visibilitychange',()=>{if(actx&&document.hidden){try{actx.suspend()}catch(e){}}});
+addEventListener('pointerdown',()=>{if(actx&&actx.state!=='running')try{actx.resume()}catch(e){}},true);
 /* sound may only start after a tap: the first tap anywhere wakes the audio */
 (function(){const first=()=>{KG.ensureAudio();['pointerdown','keydown'].forEach(t=>removeEventListener(t,first,true))};['pointerdown','keydown'].forEach(t=>addEventListener(t,first,true))})();
 
 /* ---------------- beat loop ---------------- */
-(function loop(){const k=Math.pow(1-KG.beatPhase(),3);document.documentElement.style.setProperty('--kick',k.toFixed(3));requestAnimationFrame(loop)})();
+/* the gentle beat bounce. With less motion (in-app or device setting) it rests,
+   which also saves battery on older tablets. */
+(function(){const de=document.documentElement,mq=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;
+  const calm=()=>de.dataset.motion==='reduce'||(mq&&mq.matches);
+  (function loop(){if(calm()){de.style.setProperty('--kick','0');setTimeout(loop,500);return}
+    const k=Math.pow(1-KG.beatPhase(),3);de.style.setProperty('--kick',k.toFixed(3));requestAnimationFrame(loop)})()})();
 
 /* ---------------- sparkles & confetti ---------------- */
 KG.sparkle=function(el,color){if(!el)return;const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;color=color||'#ffd23f';

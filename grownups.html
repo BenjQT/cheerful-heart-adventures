@@ -3,6 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="48x48" href="img/icons/favicon-48.png">
+<link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cheerful Heart">
+<meta name="format-detection" content="telephone=no">
+<script src="core/pwa.js" defer></script>
 <title>Grown-ups’ Corner · Cheerful Heart Adventures</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#6ab8ff">
@@ -13,8 +22,9 @@ body{margin:0;background:var(--sky-bg,#7cc4ff);overscroll-behavior-y:none}
 .gc{grid-template-columns:minmax(0,1fr);width:min(1040px,100%);margin:0 auto;padding:calc(var(--safe-t) + 12px) var(--gutter-r) calc(var(--safe-b) + 40px) var(--gutter-l);display:grid;gap:clamp(14px,2.5vw,22px)}
 .gc-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .gc-bar h1{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,5.5vw,2.3rem);color:#fff;text-shadow:0 3px 0 rgba(42,31,61,.45);flex:1;min-width:12ch}
-.gc-nav{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:3;padding:8px 0;background:linear-gradient(var(--sky-bg,#7cc4ff) 80%,rgba(124,196,255,0))}
-.gc-nav a{flex:none;font-weight:700;font-size:var(--fs-sm);color:var(--sky-d);background:#fff;border-radius:999px;padding:.45em 1em;text-decoration:none;min-height:40px;display:inline-flex;align-items:center;box-shadow:0 2px 0 rgba(42,31,61,.12)}
+.gc-nav{display:flex;gap:8px;flex-wrap:wrap;padding:4px 0}
+@media (min-width:700px){.gc-nav{position:sticky;top:0;z-index:3;padding:8px 0;background:linear-gradient(var(--sky-bg,#7cc4ff) 80%,rgba(124,196,255,0))}}
+.gc-nav a{flex:none;font-weight:700;font-size:var(--fs-sm);color:var(--sky-d);background:#fff;border-radius:999px;padding:.45em 1em;text-decoration:none;min-height:44px;display:inline-flex;align-items:center;box-shadow:0 2px 0 rgba(42,31,61,.12)}
 .gc-nav a:focus-visible{outline:4px solid var(--focus);outline-offset:2px}
 .card{background:var(--paper);border-radius:var(--r-lg,22px);padding:clamp(14px,3vw,24px);box-shadow:0 6px 0 rgba(42,31,61,.12);scroll-margin-top:64px}
 .card>h2{margin:0 0 12px;font-family:var(--display);font-weight:400;font-size:clamp(1.3rem,4vw,1.65rem)}

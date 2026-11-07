@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Device Size Check</title>
+<style>
+  body{font-family:system-ui,sans-serif;margin:0;padding:16px;background:#fffdf6;color:#2a1f3d}
+  h1{margin:.2em 0}
+  table{border-collapse:collapse;font-size:.9rem;margin:12px 0}
+  td,th{border:1px solid #ddd;padding:5px 8px;text-align:left;vertical-align:top}
+  .pass{background:#e2f6dc;color:#1f5814;font-weight:700}.fail{background:#ffe0ea;color:#a3204f;font-weight:700}
+  #stage{position:absolute;left:-10000px;top:0}
+  #stage iframe{border:0;display:block}
+  code{font-size:.85em}
+</style></head><body>
+<h1>Device size check</h1>
+<p>Opens every page at common phone, tablet and laptop sizes (in hidden frames) and checks:
+no sideways scrolling, every button fully on screen, and tap targets at least 44&nbsp;px.
+This checks layout only; it does not replace trying a real device.</p>
+<p id="sum" role="status">Running…</p>
+<table id="out"><thead></thead><tbody></tbody></table>
+<div id="stage"></div>
+<script>
+const SIZES=[['Phone small',320,568],['iPhone SE',375,667],['iPhone 14',390,844],['Android',360,740],['Phone landscape',740,360],['iPad portrait',768,1024],['iPad landscape',1024,768],['Laptop',1366,768]];
+const PAGES=['index.html','grownups.html','star-map.html','shapes.html','patterns.html','treasure.html','cookies.html','bridge.html','sorting.html','clock.html','market.html','hide-seek.html','garden.html','race.html'];
+try{sessionStorage.setItem('ch-in','1');sessionStorage.setItem('ch-gate',String(Date.now()))}catch(e){}
+const out=document.querySelector('#out tbody'),head=document.querySelector('#out thead');
+head.innerHTML='<tr><th>Page</th>'+SIZES.map(s=>`<th>${s[0]}<br><small>${s[1]}×${s[2]}</small></th>`).join('')+'</tr>';
+function check(w){
+  const d=w.document,de=d.documentElement,W=w.innerWidth,H=w.innerHeight,issues=[];
+  if(de.scrollWidth>W+1)issues.push('scrolls sideways ('+de.scrollWidth+'px)');
+  const vis=e=>{const r=e.getBoundingClientRect(),cs=w.getComputedStyle(e);return r.width>0&&r.height>0&&cs.visibility!=='hidden'&&!e.closest('[hidden]')&&e.offsetParent!==null};
+  const btns=[...d.querySelectorAll('button,a[href],[role=button]')].filter(vis);
+  const off=btns.filter(b=>{const r=b.getBoundingClientRect();return r.right>W+1||r.left<-1});
+  if(off.length)issues.push(off.length+' button(s) off the side: '+off.slice(0,2).map(b=>(b.getAttribute('aria-label')||b.textContent||b.className).trim().slice(0,24)).join(', '));
+  const tiny=btns.filter(b=>{const r=b.getBoundingClientRect();return (r.width<44||r.height<44)&&!b.closest('.grown,p,td,.ch-more')});
+  if(tiny.length)issues.push(tiny.length+' small target(s): '+tiny.slice(0,2).map(b=>(b.getAttribute('aria-label')||b.textContent||b.className).trim().slice(0,20)+' '+Math.round(b.getBoundingClientRect().width)+'×'+Math.round(b.getBoundingClientRect().height)).join(', '));
+  return issues;
+}
+function load(page,w,h){return new Promise(res=>{const f=document.createElement('iframe');f.width=w;f.height=h;f.style.width=w+'px';f.style.height=h+'px';f.src='../'+page;
+  let done=false;const fin=()=>{if(done)return;done=true;let r;try{r=check(f.contentWindow)}catch(e){r=['error: '+e.message]}f.remove();res(r)};
+  f.onload=()=>setTimeout(fin,1400);setTimeout(fin,8000);document.getElementById('stage').appendChild(f)})}
+(async()=>{let pass=0,fail=0;const results={};
+  for(const p of PAGES){const tr=document.createElement('tr');tr.innerHTML=`<td><code>${p}</code></td>`;out.appendChild(tr);results[p]={};
+    for(const [n,w,h] of SIZES){const iss=await load(p,w,h);const td=document.createElement('td');td.className=iss.length?'fail':'pass';td.textContent=iss.length?iss.join('; '):'pass';tr.appendChild(td);results[p][n]=iss;iss.length?fail++:pass++}}
+  document.getElementById('sum').textContent=`${pass} passed, ${fail} need a look`;window.__result={pass,fail,results};
+})();
+</script>
+</body></html>

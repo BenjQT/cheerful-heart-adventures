@@ -1,5 +1,15 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="48x48" href="img/icons/favicon-48.png">
+<link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cheerful Heart">
+<meta name="format-detection" content="telephone=no">
+<script src="core/pwa.js" defer></script>
+<meta name="theme-color" content="#6ab8ff">
 <title>The Lost Star Map</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,6 +38,9 @@ body{background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-bot) 78%);fon
 #scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 button:focus-visible{outline:4px solid #fff;outline-offset:3px;box-shadow:0 0 0 7px var(--ink)}
+/* keyboard play: ring around the chosen star */
+.kb-ring{position:fixed;z-index:4;left:0;top:0;width:clamp(64px,11vw,96px);aspect-ratio:1;border-radius:50%;border:5px solid #fff;box-shadow:0 0 0 4px var(--focus,#1a5cff),0 0 18px rgba(255,255,255,.8);transform:translate(-50%,-50%);pointer-events:none}
+.kb-help{position:fixed;z-index:4;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:translateX(-50%);background:rgba(42,31,61,.75);color:#fff;font-weight:700;font-size:.85rem;padding:.3em .9em;border-radius:999px;pointer-events:none}
 
 /* ---------- chunky buttons ---------- */
 .btn{font-family:var(--display);font-size:clamp(1.05rem,3.6vw,1.35rem);letter-spacing:.02em;color:#fff;border:0;border-radius:12px;padding:.55em 1.15em .65em;background:var(--leaf);
@@ -503,7 +516,7 @@ readAudioSettings();
 const musLevel=()=>musicOn?.32*musicVol:0;
 function applyAudioSettings(){readAudioSettings();if(actx){musGain.gain.setTargetAtTime(musLevel(),actx.currentTime,.2);sfxGain.gain.cancelScheduledValues(actx.currentTime);sfxGain.gain.setValueAtTime(soundOn?.55:0,actx.currentTime)}const mb=document.getElementById('musicBtn');if(mb)mb.classList.toggle('off',!musicOn)}
 if(window.CH&&CH.store)CH.store.onChange(t=>{if(t==='settings'||t==='external')applyAudioSettings()});
-function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();const master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=soundOn?.55:0;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musLevel();musGain.connect(master);nextNote=actx.currentTime+.1;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;if(window.CH&&CH.voice)CH.voice.unlock();}catch(e){actx=null}}else if(actx.state==='suspended')actx.resume()}
+function ensureAudio(){if(actx&&actx.state!=='running'){try{actx.resume()}catch(e){}}if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();const master=actx.createGain();master.gain.value=.9;master.connect(actx.destination);sfxGain=actx.createGain();sfxGain.gain.value=soundOn?.55:0;sfxGain.connect(master);musGain=actx.createGain();musGain.gain.value=musLevel();musGain.connect(master);nextNote=actx.currentTime+.1;gridStart=nextNote;const nb=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;noiseBuf=nb;if(window.CH&&CH.voice)CH.voice.unlock();}catch(e){actx=null}}else if(actx.state==='suspended')actx.resume()}
 function tone(f,dur,o={}){if(!actx)return;const{type='sine',g=.25,when=0,dest=sfxGain,attack=.012,slide=0}=o;const t=actx.currentTime+when;const os=actx.createOscillator(),a=actx.createGain();os.type=type;os.frequency.setValueAtTime(f,t);if(slide)os.frequency.exponentialRampToValueAtTime(f*slide,t+dur);a.gain.setValueAtTime(.0001,t);a.gain.exponentialRampToValueAtTime(g,t+attack);a.gain.exponentialRampToValueAtTime(.0001,t+dur);os.connect(a);a.connect(dest);os.start(t);os.stop(t+dur+.05)}
 const PENTA=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5,1567.98,1760,2093];
 let nbuf=null;function nbf(){if(!nbuf&&actx){nbuf=actx.createBuffer(1,actx.sampleRate*.1,actx.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}return nbuf}
@@ -693,6 +706,30 @@ canvas.addEventListener('pointerdown',e=>{
 $('#homeBtn').onclick=()=>{sfx.pop();goTitle()};
 $('#repeatBtn').onclick=()=>{ensureAudio();if(state!=='play')return;const n=curTarget();if(n===undefined)return;hint()};
 $('#musicBtn').onclick=()=>{ensureAudio();setMusic(!musicOn)};
+/* iOS/Android: pause sound in the background, wake it on the next tap */
+document.addEventListener('visibilitychange',()=>{if(!actx)return;if(document.hidden){try{actx.suspend()}catch(e){}}});
+addEventListener('pointerdown',()=>{if(actx&&actx.state!=='running')try{actx.resume()}catch(e){}},true);
+/* ---------- keyboard play ----------
+   Arrow keys move a ring between the stars (left to right on screen),
+   Enter or Space taps it. Number keys tap that star directly (type 1 then 2 for 12). */
+const kbRing=document.createElement('div');kbRing.className='kb-ring';kbRing.hidden=true;document.body.appendChild(kbRing);
+const kbHelp=document.createElement('div');kbHelp.className='kb-help';kbHelp.hidden=true;kbHelp.textContent='← → choose a star · Enter to tap';document.body.appendChild(kbHelp);
+const kbLive=document.createElement('div');kbLive.className='ch-sr';kbLive.setAttribute('aria-live','polite');document.body.appendChild(kbLive);
+let kbStar=null,kbBuf='',kbBufT=0;const kbV=new THREE.Vector3();
+function starScreen(st){st.grp.getWorldPosition(kbV);kbV.project(camera);return{x:(kbV.x+1)/2*innerWidth,y:(1-kbV.y)/2*innerHeight}}
+function kbMove(d){const list=stars.filter(x=>!x.collected).map(x=>({x,p:starScreen(x)})).sort((a,b)=>a.p.x-b.p.x).map(o=>o.x);if(!list.length)return;
+  let i=list.indexOf(kbStar);i=i<0?(d>0?0:list.length-1):(i+d+list.length)%list.length;kbStar=list[i];kbHelp.hidden=false;kbLive.textContent='Star '+kbStar.n;sfx.pop&&sfx.pop()}
+addEventListener('keydown',e=>{
+  if(state!=='play'||document.querySelector('.ch-modal')||e.altKey||e.ctrlKey||e.metaKey)return;
+  const k=e.key;
+  if(k==='ArrowRight'||k==='ArrowDown'){e.preventDefault();ensureAudio();kbMove(1)}
+  else if(k==='ArrowLeft'||k==='ArrowUp'){e.preventDefault();ensureAudio();kbMove(-1)}
+  else if((k==='Enter'||k===' ')&&kbStar&&!kbStar.collected&&!(e.target&&e.target.closest&&e.target.closest('button'))){e.preventDefault();ensureAudio();onStarTap(kbStar)}
+  else if(/^[0-9]$/.test(k)){ensureAudio();const now=performance.now();kbBuf=(now-kbBufT<900?kbBuf:'')+k;kbBufT=now;
+    const n=+kbBuf,hit=stars.find(x=>!x.collected&&x.n===n),longer=stars.some(x=>!x.collected&&String(x.n).startsWith(kbBuf)&&x.n!==n);
+    if(hit&&!longer){kbStar=hit;onStarTap(hit);kbBuf=''}else if(hit){const b=kbBuf;setTimeout(()=>{if(kbBuf===b&&!hit.collected&&state==='play'){kbStar=hit;onStarTap(hit);kbBuf=''}},900)}}
+});
+canvas.addEventListener('pointerdown',()=>{kbHelp.hidden=true;kbStar=null},true);
 /* sound may only start after a tap: the first tap anywhere wakes the audio */
 (function(){const first=()=>{ensureAudio();['pointerdown','keydown'].forEach(t=>removeEventListener(t,first,true))};['pointerdown','keydown'].forEach(t=>addEventListener(t,first,true))})();
 $('#nextBtn').onclick=()=>{sfx.pop();if(levelIdx<LEVELS.length-1)startLevel(levelIdx+1);else goTitle()};
@@ -759,9 +796,17 @@ function frame(){
   clouds.children.forEach(cl=>{cl.position.x+=cl.userData.v*dt;if(cl.position.x>24)cl.position.x=-26});
   if(waterMesh)waterMesh.position.y=Math.sin(t*1.5)*.025;
   if(fireflies){const a=fireflies.geometry.attributes.position.array;fireflies.userData.seed.forEach((s,k)=>{a[k*3]=s[1]+Math.sin(t*.6+s[0])*1.2;a[k*3+1]=s[3]+Math.sin(t*1.3+s[0]*2)*.5;a[k*3+2]=s[2]+Math.cos(t*.5+s[0])*1.2});fireflies.geometry.attributes.position.needsUpdate=true;fireflies.material.opacity=.6+Math.sin(t*3)*.3}
+  if(kbStar&&!kbStar.collected&&state==='play'){const p=starScreen(kbStar);kbRing.hidden=false;kbRing.style.left=p.x+'px';kbRing.style.top=p.y+'px'}
+  else{kbRing.hidden=true;if(state!=='play')kbHelp.hidden=true}
+  perfCheck(dt);
   renderer.render(scene,camera);
   requestAnimationFrame(frame);
 }
+/* performance: if the first seconds of play run slowly (older tablets/phones),
+   draw at 1x resolution instead of 2x. Hidden time is ignored. */
+let perfN=0,perfSum=0,perfDone=false;
+function perfCheck(dt){if(perfDone||document.hidden)return;perfN++;perfSum+=dt;
+  if(perfN>=150){perfDone=true;const fps=perfN/perfSum;if(fps<40&&renderer.getPixelRatio()>1){renderer.setPixelRatio(1);renderer.setSize(innerWidth,innerHeight,false)}}}
 
 /* ================= boot ================= */
 renderer.setSize(innerWidth,innerHeight,false);
